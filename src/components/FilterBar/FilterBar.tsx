@@ -8,6 +8,7 @@ import './FilterBar.css';
 const PROCEDURE_OPTIONS: ProcedureName[] = [
   'Registration', 'PDU Session Establishment', 'PDU Session Modification',
   'PDU Session Release', 'Deregistration', 'Authentication Failure',
+  'VoNR Session Setup', 'VoNR Session Release',
   'Handover (Xn)', 'Service Request', 'UE Config Update',
 ];
 

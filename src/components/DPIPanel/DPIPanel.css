@@ -1,0 +1,86 @@
+.dpi-wrap {
+  display: flex; flex-direction: column; height: 100%;
+  background: var(--bg-panel); overflow: hidden;
+}
+.dpi-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 12px; height: 34px;
+  background: var(--bg-sidebar); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.dpi-title {
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.dpi-app-tag {
+  font-size: 11px; font-family: var(--font-mono); color: var(--accent-green);
+}
+
+.dpi-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 14px; }
+
+.dpi-cards {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+}
+.dpi-card {
+  background: var(--bg-main); border: 1px solid var(--border);
+  border-radius: 4px; padding: 10px 12px;
+}
+.dpi-card-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.dpi-card-value { font-family: var(--font-mono); font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.dpi-card-sub   { font-size: 10px; color: var(--text-dim); margin-top: 3px; font-family: var(--font-mono); }
+
+/* MOS score */
+.dpi-mos { font-size: 22px !important; }
+.dpi-mos--good { color: var(--accent-green) !important; }
+.dpi-mos--ok   { color: var(--accent-amber) !important; }
+.dpi-mos--bad  { color: var(--accent-red) !important; }
+
+.dpi-section-title {
+  font-size: 10px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+}
+
+/* QoS flow table */
+.dpi-flow-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.dpi-flow-table th {
+  font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.5px; padding: 4px 8px; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.dpi-flow-table td {
+  padding: 5px 8px; border-bottom: 1px solid var(--border); font-family: var(--font-mono);
+}
+.dpi-flow-table tr:last-child td { border-bottom: none; }
+
+.dpi-gbr-badge {
+  display: inline-block; padding: 1px 5px; border-radius: 2px;
+  font-size: 10px; font-weight: 600;
+}
+.dpi-gbr-badge--gbr     { background: rgba(29,158,117,0.2); color: var(--accent-green); }
+.dpi-gbr-badge--nongbr  { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+/* Throughput bar */
+.dpi-throughput { display: flex; flex-direction: column; gap: 6px; }
+.dpi-th-row { display: flex; align-items: center; gap: 8px; }
+.dpi-th-label { font-size: 11px; color: var(--text-secondary); min-width: 24px; }
+.dpi-th-bar-wrap { flex: 1; height: 10px; background: var(--bg-main); border-radius: 5px; overflow: hidden; border: 1px solid var(--border); }
+.dpi-th-bar { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
+.dpi-th-bar--dl { background: var(--accent-blue); }
+.dpi-th-bar--ul { background: var(--accent-green); }
+.dpi-th-val { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); min-width: 64px; text-align: right; }
+
+/* Anomaly alerts */
+.dpi-anomalies { display: flex; flex-direction: column; gap: 6px; }
+.dpi-anomaly {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; background: rgba(226,75,74,0.08);
+  border: 1px solid rgba(226,75,74,0.25); border-radius: 3px;
+  font-size: 12px; color: var(--accent-red);
+}
+
+.dpi-empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: var(--text-dim); font-size: 13px;
+}

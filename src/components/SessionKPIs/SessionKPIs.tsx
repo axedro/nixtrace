@@ -1,6 +1,20 @@
 import { useNIxStore } from '../../store/nixStore';
 import './SessionKPIs.css';
 
+function SubscriberLink({ imsi, sessions }: { imsi: string; sessions: { imsi: string }[] }) {
+  const setFilter = useNIxStore((s) => s.setFilter);
+  const count = sessions.filter((s) => s.imsi === imsi).length;
+  return (
+    <span
+      style={{ cursor: 'pointer', color: 'var(--accent-blue)', textDecoration: 'underline dotted' }}
+      title={`Show all ${count} sessions for this subscriber`}
+      onClick={() => setFilter({ imsi })}
+    >
+      {imsi}
+    </span>
+  );
+}
+
 function ifacePath(messages: { iface: string }[]): string {
   const seen = new Set<string>();
   const path: string[] = [];
@@ -20,7 +34,8 @@ function relMs(messages: { timestamp: string }[], idx: number): number {
 }
 
 export function SessionKPIs() {
-  const session = useNIxStore((s) => s.selectedSession);
+  const session  = useNIxStore((s) => s.selectedSession);
+  const sessions = useNIxStore((s) => s.sessions);
 
   if (!session) {
     return (
@@ -90,7 +105,12 @@ export function SessionKPIs() {
           <div className="kpi-section-title">Session Context</div>
           <table className="kpi-ctx-table">
             <tbody>
-              <tr><td className="kpi-ctx-key">IMSI</td><td className="kpi-ctx-val">{session.imsi}</td></tr>
+              <tr>
+      <td className="kpi-ctx-key">IMSI</td>
+      <td className="kpi-ctx-val">
+        <SubscriberLink imsi={session.imsi} sessions={sessions} />
+      </td>
+    </tr>
               {session.msisdn && <tr><td className="kpi-ctx-key">MSISDN</td><td className="kpi-ctx-val">{session.msisdn}</td></tr>}
               <tr><td className="kpi-ctx-key">gNB</td><td className="kpi-ctx-val">{session.gnb}</td></tr>
               <tr><td className="kpi-ctx-key">AMF</td><td className="kpi-ctx-val">{session.amf}</td></tr>

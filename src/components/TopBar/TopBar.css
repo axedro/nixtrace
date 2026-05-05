@@ -106,6 +106,47 @@
   50%       { opacity: 0.3; }
 }
 
+/* ── Capture mode select ──────────────────────────────────────────────────── */
+.tb-mode-select {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-family: var(--font-ui);
+  padding: 3px 8px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+.tb-mode-select:focus { border-color: var(--accent-green); color: var(--text-primary); }
+.tb-mode-select option { background: var(--bg-sidebar); }
+
+/* ── Trigger button ───────────────────────────────────────────────────────── */
+.tb-trigger-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  transition: border-color 0.15s, color 0.15s;
+  position: relative;
+}
+.tb-trigger-btn:hover { border-color: var(--accent-amber); color: var(--accent-amber); }
+.tb-trigger-btn--active { border-color: var(--accent-amber); color: var(--accent-amber); }
+.tb-trigger-btn--has-rules { border-color: var(--accent-amber); }
+
+.tb-trigger-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent-amber); color: #000;
+  font-size: 9px; font-weight: 700;
+}
+
 .tb-clock {
   font-family: var(--font-mono);
   font-size: 13px;

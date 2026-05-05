@@ -3,7 +3,8 @@ import { format } from 'date-fns';
 import clsx from 'clsx';
 import { useNIxStore } from '../../store/nixStore';
 import { isOfflineMode } from '../../lib/supabaseClient';
-import type { DemoScenario } from '../../types/session.types';
+import { ExportMenu } from '../ExportMenu/ExportMenu';
+import type { DemoScenario, CaptureMode } from '../../types/session.types';
 import './TopBar.css';
 
 const SCENARIOS: DemoScenario[] = [
@@ -27,18 +28,30 @@ const SCENARIOS: DemoScenario[] = [
   },
 ];
 
+const MODE_LABELS: Record<CaptureMode, string> = {
+  online:     'Online',
+  historical: 'Historical',
+  combined:   'Combined',
+  scheduled:  'Scheduled',
+};
+
 interface TopBarProps {
   onScenario?: (id: 'A' | 'B' | 'C') => void;
   activeScenario?: 'A' | 'B' | 'C' | null;
 }
 
 export function TopBar({ onScenario, activeScenario }: TopBarProps) {
-  const wsConnected = useNIxStore((s) => s.wsConnected);
-  const liveMode    = useNIxStore((s) => s.liveMode);
-  const setLiveMode = useNIxStore((s) => s.setLiveMode);
-  const setFilter   = useNIxStore((s) => s.setFilter);
-  const sessions    = useNIxStore((s) => s.sessions);
+  const wsConnected   = useNIxStore((s) => s.wsConnected);
+  const liveMode      = useNIxStore((s) => s.liveMode);
+  const setLiveMode   = useNIxStore((s) => s.setLiveMode);
+  const setFilter     = useNIxStore((s) => s.setFilter);
+  const sessions      = useNIxStore((s) => s.sessions);
   const selectSession = useNIxStore((s) => s.selectSession);
+  const captureMode   = useNIxStore((s) => s.captureMode);
+  const setCaptureMode= useNIxStore((s) => s.setCaptureMode);
+  const triggerActive = useNIxStore((s) => s.triggerActive);
+  const triggerRules  = useNIxStore((s) => s.triggerRules);
+  const setShowTrigger= useNIxStore((s) => s.setShowTriggerModal);
 
   const [clock, setClock] = useState(() => format(new Date(), 'HH:mm:ss'));
 
@@ -48,14 +61,11 @@ export function TopBar({ onScenario, activeScenario }: TopBarProps) {
   }, []);
 
   function handleScenario(sc: DemoScenario) {
-    // Reset to 'all' defaults first, then apply scenario filter
     setFilter({
       status: 'all', slice: 'all', procedure: 'all', iface: 'all', imsi: '',
       ...sc.filter,
     });
     onScenario?.(sc.id);
-
-    // Auto-select first matching session after filter applies
     if (sc.autoSelectFirst && sessions.length > 0) {
       const first = sessions.find((s) => {
         if (sc.filter.status    && s.status    !== sc.filter.status)    return false;
@@ -90,6 +100,20 @@ export function TopBar({ onScenario, activeScenario }: TopBarProps) {
 
       <div className="tb-div" />
 
+      {/* Capture mode */}
+      <select
+        className="tb-mode-select"
+        value={captureMode}
+        onChange={(e) => setCaptureMode(e.target.value as CaptureMode)}
+        title="Capture mode"
+      >
+        {(Object.keys(MODE_LABELS) as CaptureMode[]).map((m) => (
+          <option key={m} value={m}>{MODE_LABELS[m]}</option>
+        ))}
+      </select>
+
+      <div className="tb-div" />
+
       {/* Scenario bookmarks */}
       <div className="tb-scenarios">
         {SCENARIOS.map((sc) => (
@@ -99,7 +123,6 @@ export function TopBar({ onScenario, activeScenario }: TopBarProps) {
               'tb-scenario-btn--active': activeScenario === sc.id,
             })}
             onClick={() => handleScenario(sc)}
-            title={`Scenario ${sc.id}`}
           >
             {sc.label}
           </button>
@@ -107,6 +130,24 @@ export function TopBar({ onScenario, activeScenario }: TopBarProps) {
       </div>
 
       <div className="tb-spacer" />
+
+      {/* Trigger button */}
+      <button
+        className={clsx('tb-trigger-btn', {
+          'tb-trigger-btn--active': triggerActive,
+          'tb-trigger-btn--has-rules': triggerRules.length > 0,
+        })}
+        onClick={() => setShowTrigger(true)}
+        title="Trigger-based capture rules"
+      >
+        {triggerRules.length > 0 && (
+          <span className="tb-trigger-count">{triggerRules.length}</span>
+        )}
+        ⚡ Triggers
+      </button>
+
+      {/* Export */}
+      <ExportMenu />
 
       {/* Live toggle */}
       <button

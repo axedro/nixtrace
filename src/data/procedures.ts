@@ -222,4 +222,45 @@ export const PROCEDURE_DEFS: Record<ProcedureName, Omit<ProcedureDef, 'nfColumns
     primaryIface: 'N1',
     baseDurationMs: 75,
   },
+
+  'VoNR Session Setup': {
+    name: 'VoNR Session Setup',
+    nfFactory: (gnb, amf, amfIp, smf, smfIp) => [
+      NF_DEFS.UE(gnb), NF_DEFS.gNB(gnb, '10.10.1.1'), NF_DEFS.AMF(amf, amfIp),
+      NF_DEFS.SMF(smf!, smfIp!),
+    ],
+    messages: [
+      { seq: 1,  from:'UE',  to:'AMF', iface:'N1',  name:'PDU Session Est. (IMS APN)',    protocol:'NAS',   baseByteLen:165, isErrorPoint:false },
+      { seq: 2,  from:'AMF', to:'SMF', iface:'N11', name:'Nsmf_PDUSession Create (IMS)',  protocol:'HTTP2', baseByteLen:210, isErrorPoint:false },
+      { seq: 3,  from:'UE',  to:'AMF', iface:'N1',  name:'SIP REGISTER',                 protocol:'SIP',   baseByteLen:540, isErrorPoint:false },
+      { seq: 4,  from:'AMF', to:'UE',  iface:'N1',  name:'SIP 100 Trying',               protocol:'SIP',   baseByteLen:280, isErrorPoint:false },
+      { seq: 5,  from:'AMF', to:'UE',  iface:'N1',  name:'SIP 200 OK (REGISTER)',        protocol:'SIP',   baseByteLen:420, isErrorPoint:false },
+      { seq: 6,  from:'UE',  to:'AMF', iface:'N1',  name:'SIP INVITE',                   protocol:'SIP',   baseByteLen:680, isErrorPoint:true  },
+      { seq: 7,  from:'AMF', to:'UE',  iface:'N1',  name:'SIP 183 Session Progress',     protocol:'SIP',   baseByteLen:380, isErrorPoint:false },
+      { seq: 8,  from:'AMF', to:'UE',  iface:'N1',  name:'SIP 200 OK (INVITE)',          protocol:'SIP',   baseByteLen:510, isErrorPoint:false },
+      { seq: 9,  from:'UE',  to:'AMF', iface:'N1',  name:'SIP ACK',                      protocol:'SIP',   baseByteLen:220, isErrorPoint:false },
+      { seq: 10, from:'UE',  to:'SMF', iface:'N4',  name:'RTP Stream Established',       protocol:'RTP',   baseByteLen:172, isErrorPoint:false },
+    ],
+    slices: ['eMBB', 'uRLLC'],
+    primaryIface: 'N1',
+    baseDurationMs: 320,
+  },
+
+  'VoNR Session Release': {
+    name: 'VoNR Session Release',
+    nfFactory: (gnb, amf, amfIp, smf, smfIp) => [
+      NF_DEFS.UE(gnb), NF_DEFS.gNB(gnb, '10.10.1.1'), NF_DEFS.AMF(amf, amfIp),
+      NF_DEFS.SMF(smf!, smfIp!),
+    ],
+    messages: [
+      { seq: 1, from:'UE',  to:'AMF', iface:'N1', name:'SIP BYE',                    protocol:'SIP',   baseByteLen:280, isErrorPoint:false },
+      { seq: 2, from:'AMF', to:'UE',  iface:'N1', name:'SIP 200 OK (BYE)',           protocol:'SIP',   baseByteLen:240, isErrorPoint:false },
+      { seq: 3, from:'UE',  to:'SMF', iface:'N4', name:'RTCP BYE',                   protocol:'RTCP',  baseByteLen:64,  isErrorPoint:false },
+      { seq: 4, from:'AMF', to:'SMF', iface:'N11',name:'Nsmf_PDUSession Release IMS',protocol:'HTTP2', baseByteLen:165, isErrorPoint:true  },
+      { seq: 5, from:'AMF', to:'UE',  iface:'N1', name:'PDU Session Release Command',protocol:'NAS',   baseByteLen:110, isErrorPoint:false },
+    ],
+    slices: ['eMBB', 'uRLLC'],
+    primaryIface: 'N1',
+    baseDurationMs: 95,
+  },
 };

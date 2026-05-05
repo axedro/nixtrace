@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { PROCEDURE_DEFS } from './procedures';
 import type {
   Session, LadderMessage, DecodedField, SessionKpiData,
-  ProcedureName, SliceName, SessionStatus, NfNode,
+  ProcedureName, SliceName, SessionStatus, NfNode, DpiData, QosFlow,
 } from '../types/session.types';
 
 // ── Pools ─────────────────────────────────────────────────────────────────────
@@ -47,12 +47,14 @@ const CAUSE_5GMM: Record<string, string> = {
 
 // Weighted procedure selection
 const PROCEDURE_WEIGHTS: [ProcedureName, number][] = [
-  ['PDU Session Establishment', 35],
+  ['PDU Session Establishment', 32],
   ['Registration',              30],
   ['Handover (Xn)',             15],
   ['Service Request',            8],
   ['PDU Session Modification',   4],
   ['PDU Session Release',        3],
+  ['VoNR Session Setup',         3],
+  ['VoNR Session Release',       2],
   ['Deregistration',             2],
   ['Authentication Failure',     2],
   ['UE Config Update',           1],
@@ -262,6 +264,62 @@ function generateDecoded(msgName: string, protocol: string, status: SessionStatu
   }
 }
 
+// ── DPI generator ─────────────────────────────────────────────────────────────
+
+const APP_MAP: Record<string, { appId: string; category: string }> = {
+  'PDU Session Establishment': { appId: 'internet.general',  category: 'Web/Data' },
+  'PDU Session Modification':  { appId: 'internet.general',  category: 'Web/Data' },
+  'PDU Session Release':       { appId: 'internet.general',  category: 'Web/Data' },
+  'Registration':              { appId: 'signaling.5g',      category: 'Signaling' },
+  'Deregistration':            { appId: 'signaling.5g',      category: 'Signaling' },
+  'Authentication Failure':    { appId: 'signaling.5g',      category: 'Signaling' },
+  'Handover (Xn)':             { appId: 'signaling.mobility',category: 'Mobility' },
+  'Service Request':           { appId: 'signaling.5g',      category: 'Signaling' },
+  'UE Config Update':          { appId: 'signaling.5g',      category: 'Signaling' },
+  'VoNR Session Setup':        { appId: 'voice.vonr',        category: 'VoNR/IMS' },
+  'VoNR Session Release':      { appId: 'voice.vonr',        category: 'VoNR/IMS' },
+};
+
+function generateDpi(procedureName: string, slice: SliceName, status: SessionStatus): DpiData {
+  const app = APP_MAP[procedureName] ?? { appId: 'unknown', category: 'Other' };
+  const isVoice = procedureName.startsWith('VoNR');
+  const isData  = procedureName.startsWith('PDU');
+  const errFactor = status === 'err' ? 2 : status === 'warn' ? 1.3 : 1;
+
+  const flows: QosFlow[] = isVoice ? [
+    { qfi: 1, fiveQI: 1,  type: 'GBR', gbrDl: 128, gbrUl: 128, pdb: 100 },
+    { qfi: 5, fiveQI: 5,  type: 'Non-GBR', pdb: 300 },
+  ] : isData ? [
+    { qfi: 6,  fiveQI: 6,  type: 'Non-GBR', pdb: 300 },
+    { qfi: 8,  fiveQI: 8,  type: 'Non-GBR', pdb: 300 },
+    ...(slice === 'uRLLC' ? [{ qfi: 2, fiveQI: 2, type: 'GBR' as const, gbrDl: 50000, gbrUl: 10000, pdb: 10 }] : []),
+  ] : [
+    { qfi: 5, fiveQI: 5, type: 'Non-GBR', pdb: 300 },
+  ];
+
+  const bytesBase = isVoice ? 28000 : isData ? 450000 : 12000;
+  const anomalies: string[] = [];
+  if (status === 'err')  anomalies.push('Session establishment failure');
+  if (status === 'warn') anomalies.push('QoS negotiation degraded');
+  if (slice === 'uRLLC' && errFactor > 1) anomalies.push('Latency SLA breach (>10ms)');
+
+  return {
+    appId:       app.appId,
+    appCategory: app.category,
+    dpi_flows:   flows,
+    bytesUl:     Math.round(jitter(bytesBase * 0.3) * errFactor),
+    bytesDl:     Math.round(jitter(bytesBase * 0.7) * errFactor),
+    packetsUl:   Math.round(jitter(bytesBase * 0.3 / 1400)),
+    packetsDl:   Math.round(jitter(bytesBase * 0.7 / 1400)),
+    jitterMs:    isVoice ? jitter(isData ? 5 : 2) : undefined,
+    latencyMs:   slice === 'uRLLC' ? jitter(8) : isVoice ? jitter(35) : undefined,
+    mosScore:    isVoice
+      ? parseFloat((status === 'err' ? 1.2 + Math.random() : status === 'warn' ? 2.8 + Math.random() * 0.7 : 4.1 + Math.random() * 0.4).toFixed(2))
+      : undefined,
+    anomalies,
+  };
+}
+
 // ── Main generator ─────────────────────────────────────────────────────────────
 
 export function generateSession(): Session {
@@ -353,6 +411,8 @@ export function generateSession(): Session {
     cause5gmm:       cause5gmm ? CAUSE_5GMM[cause5gmm] : undefined,
   };
 
+  const dpi = generateDpi(procedureName, slice, sessionStatus);
+
   return {
     id:            sessionId,
     created_at:    now.toISOString(),
@@ -371,5 +431,6 @@ export function generateSession(): Session {
     nfs:           nfColumns,
     messages,
     kpis,
+    dpi,
   };
 }

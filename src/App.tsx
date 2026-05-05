@@ -8,24 +8,43 @@ import { SessionTable } from './components/SessionTable/SessionTable';
 import { LadderDiagram } from './components/LadderDiagram/LadderDiagram';
 import { MessageDecode } from './components/MessageDecode/MessageDecode';
 import { SessionKPIs } from './components/SessionKPIs/SessionKPIs';
+import { DPIPanel } from './components/DPIPanel/DPIPanel';
+import { TriggerModal } from './components/TriggerModal/TriggerModal';
 import './App.css';
 
-type TabId = 'ladder' | 'decode' | 'kpis';
+type TabId = 'ladder' | 'decode' | 'kpis' | 'dpi';
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'ladder', label: 'Ladder' },
+  { id: 'decode', label: 'Decode' },
+  { id: 'kpis',   label: 'KPIs' },
+  { id: 'dpi',    label: 'DPI / User Plane' },
+];
 
 function App() {
   useRealtimeSessions();
 
-  const [activeTab, setActiveTab]         = useState<TabId>('ladder');
+  const [activeTab, setActiveTab]           = useState<TabId>('ladder');
   const [activeScenario, setActiveScenario] = useState<'A' | 'B' | 'C' | null>(null);
 
   const selectedSession = useNIxStore((s) => s.selectedSession);
   const selectedMessage = useNIxStore((s) => s.selectedMessage);
+  const showTrigger     = useNIxStore((s) => s.showTriggerModal);
 
-  // Auto-switch to decode tab when a message is selected via ladder click
-  const prevMsgId = useState<string | null>(null);
-  if (selectedMessage && selectedMessage.id !== prevMsgId[0]) {
-    prevMsgId[1](selectedMessage.id);
+  // Auto-switch to decode tab when a message is clicked in the ladder
+  const [prevMsgId, setPrevMsgId] = useState<string | null>(null);
+  if (selectedMessage && selectedMessage.id !== prevMsgId) {
+    setPrevMsgId(selectedMessage.id);
     if (activeTab !== 'decode') setActiveTab('decode');
+  }
+
+  // Auto-switch to DPI tab when session has VoNR (highlight MOS)
+  const prevSessionId = useState<string | null>(null);
+  if (selectedSession && selectedSession.id !== prevSessionId[0]) {
+    prevSessionId[1](selectedSession.id);
+    if (selectedSession.procedure.startsWith('VoNR') && activeTab !== 'dpi') {
+      setActiveTab('dpi');
+    }
   }
 
   return (
@@ -40,28 +59,35 @@ function App() {
         <SessionTable />
 
         <div className="app-right">
-          {/* Tab bar */}
           <div className="app-tabs">
-            {(['ladder', 'decode', 'kpis'] as TabId[]).map((t) => (
+            {TABS.map((t) => (
               <button
-                key={t}
-                className={clsx('app-tab', { 'app-tab--active': activeTab === t })}
-                onClick={() => setActiveTab(t)}
+                key={t.id}
+                className={clsx('app-tab', { 'app-tab--active': activeTab === t.id })}
+                onClick={() => setActiveTab(t.id)}
               >
-                {t === 'ladder' ? 'Ladder' : t === 'decode' ? 'Decode' : 'KPIs'}
-                {!selectedSession && ' ·'}
+                {t.label}
+                {t.id === 'dpi' && selectedSession?.dpi?.anomalies?.length ? (
+                  <span style={{
+                    marginLeft: 4, display: 'inline-block',
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: 'var(--accent-red)', verticalAlign: 'middle',
+                  }} />
+                ) : null}
               </button>
             ))}
           </div>
 
-          {/* Active panel */}
           <div className="app-panel">
             {activeTab === 'ladder' && <LadderDiagram />}
             {activeTab === 'decode' && <MessageDecode />}
             {activeTab === 'kpis'   && <SessionKPIs />}
+            {activeTab === 'dpi'    && <DPIPanel />}
           </div>
         </div>
       </div>
+
+      {showTrigger && <TriggerModal />}
     </div>
   );
 }
