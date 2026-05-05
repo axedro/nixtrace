@@ -87,20 +87,37 @@ function jitter(base: number, pct = 0.2): number {
 
 function generateRawHex(byteLen: number, protocol: string): string {
   const bytes: number[] = [];
-  // Protocol-specific first bytes
   if (protocol === 'NAS') {
-    bytes.push(0x7e); // Extended Protocol Discriminator
-    bytes.push(0x00); // Security Header: plain NAS
-    bytes.push(0x41); // default: Registration Request
+    bytes.push(0x7e, 0x00, 0x41); // EPD · Security Header · Reg Request
   } else if (protocol === 'NGAP') {
     bytes.push(0x00, 0x0f, 0x40); // NGAP initiating message
   } else if (protocol === 'PFCP') {
-    bytes.push(0x21); // PFCP version 1, SEID present
-    bytes.push(0x00);
+    bytes.push(0x21, 0x00);        // PFCP v1, SEID present
   } else if (protocol === 'HTTP2') {
-    bytes.push(0x00, 0x00, 0x00, 0x01, 0x04); // HTTP/2 HEADERS frame
+    bytes.push(0x00, 0x00, 0x00, 0x01, 0x04); // HEADERS frame
+  } else if (protocol === 'XnAP') {
+    bytes.push(0x00, 0x24, 0x00);  // XnAP InitiatingMessage
+  } else if (protocol === 'SIP') {
+    // SIP/2.0 ASCII header start: "SIP/" = 0x53 0x49 0x50 0x2F
+    bytes.push(0x53, 0x49, 0x50, 0x2F, 0x32, 0x2E, 0x30, 0x20); // "SIP/2.0 "
+  } else if (protocol === 'RTP') {
+    // RTP fixed header: V=2, P=0, X=0, CC=0, M=0, PT=97 (dynamic, EVS codec)
+    bytes.push(0x80, 0x61); // V=2, PT=97
+    const seq = Math.floor(Math.random() * 65535);
+    bytes.push((seq >> 8) & 0xff, seq & 0xff);
+    const ts = Math.floor(Math.random() * 0xFFFFFFFF);
+    bytes.push((ts >> 24) & 0xff, (ts >> 16) & 0xff, (ts >> 8) & 0xff, ts & 0xff);
+    const ssrc = Math.floor(Math.random() * 0xFFFFFFFF);
+    bytes.push((ssrc >> 24) & 0xff, (ssrc >> 16) & 0xff, (ssrc >> 8) & 0xff, ssrc & 0xff);
+  } else if (protocol === 'RTCP') {
+    // RTCP Sender Report: V=2, P=0, RC=0, PT=200 (SR)
+    bytes.push(0x80, 0xc8); // V=2, PT=200 SR
+    const len = Math.floor(byteLen / 4) - 1;
+    bytes.push((len >> 8) & 0xff, len & 0xff);
+    const ssrc = Math.floor(Math.random() * 0xFFFFFFFF);
+    bytes.push((ssrc >> 24) & 0xff, (ssrc >> 16) & 0xff, (ssrc >> 8) & 0xff, ssrc & 0xff);
   } else {
-    bytes.push(0x00, 0x24); // XnAP
+    bytes.push(0x00, 0x00);
   }
   while (bytes.length < byteLen) {
     bytes.push(Math.floor(Math.random() * 256));
@@ -248,19 +265,171 @@ function generatePfcpDecoded(msgName: string, status: SessionStatus): DecodedFie
   ];
 }
 
+function generateSipDecoded(msgName: string, status: SessionStatus): DecodedField[] {
+  const callId  = `${Math.random().toString(36).slice(2,10)}@ims.rakuten.co.jp`;
+  const cseq    = Math.floor(Math.random() * 9) + 1;
+  const isReply = msgName.includes('100') || msgName.includes('183') ||
+                  msgName.includes('200') || msgName.includes('4') || msgName.includes('5');
+  const isBye   = msgName.includes('BYE');
+  const isInvite= msgName.includes('INVITE');
+
+  const children: DecodedField[] = [
+    { key: 'SIP Version', value: 'SIP/2.0', type: 'string' },
+    {
+      key: isReply ? 'Status Line' : 'Request Line', value: '', type: 'section', children: isReply
+        ? [
+            { key: 'Status Code', value: msgName.includes('100') ? '100' : msgName.includes('183') ? '183' : msgName.includes('BYE') ? '200' : msgName.includes('486') ? '486' : '200', type: 'number' },
+            { key: 'Reason Phrase', value: msgName.includes('100') ? 'Trying' : msgName.includes('183') ? 'Session Progress' : msgName.includes('486') ? 'Busy Here' : 'OK', type: 'string' },
+          ]
+        : [
+            { key: 'Method', value: isBye ? 'BYE' : isInvite ? 'INVITE' : 'REGISTER', type: 'enum' },
+            { key: 'Request-URI', value: 'sip:bob@ims.rakuten.co.jp', type: 'string' },
+          ],
+    },
+    {
+      key: 'Headers', value: '', type: 'section', children: [
+        { key: 'Via', value: `SIP/2.0/UDP ue.rakuten.local;branch=z9hG4bK${Math.random().toString(36).slice(2,8)}`, type: 'string' },
+        { key: 'From', value: `<sip:alice@ims.rakuten.co.jp>;tag=${Math.random().toString(36).slice(2,8)}`, type: 'string' },
+        { key: 'To',   value: `<sip:bob@ims.rakuten.co.jp>`, type: 'string' },
+        { key: 'Call-ID',    value: callId, type: 'string' },
+        { key: 'CSeq',       value: `${cseq} ${isBye ? 'BYE' : isInvite ? 'INVITE' : 'REGISTER'}`, type: 'string' },
+        { key: 'Contact',    value: '<sip:alice@10.0.0.1:5060;transport=UDP>', type: 'string' },
+        { key: 'Max-Forwards', value: '70', type: 'number' },
+        { key: 'Content-Type', value: isInvite ? 'application/sdp' : '', type: 'string' },
+      ],
+    },
+  ];
+
+  if (isInvite || (isReply && msgName.includes('200') && !isBye)) {
+    children.push({
+      key: 'SDP Body', value: '', type: 'section', children: [
+        { key: 'v', value: '0', type: 'number' },
+        { key: 'o', value: 'alice 2890844526 2890844527 IN IP4 10.0.0.1', type: 'string' },
+        { key: 's', value: 'VoNR Call', type: 'string' },
+        { key: 'c', value: 'IN IP4 10.0.0.1', type: 'string' },
+        { key: 'm', value: 'audio 49170 RTP/AVP 97 98 0 8', type: 'string' },
+        { key: 'a:rtpmap:97', value: 'EVS/16000', type: 'string' },
+        { key: 'a:rtpmap:98', value: 'EVS/32000', type: 'string' },
+        { key: 'a:rtpmap:0',  value: 'PCMU/8000', type: 'string' },
+        { key: 'a:fmtp:97',   value: 'br=5.9-128; bw=nb-fb; ch-aw-recv=2', type: 'string' },
+        { key: 'a:sendrecv',  value: 'true', type: 'bool' },
+      ],
+    });
+  }
+
+  if (status === 'err') {
+    children.push({ key: 'Error', value: 'SIP 486 Busy Here — callee unavailable', type: 'enum', error: true });
+  }
+  if (status === 'warn') {
+    children.push({ key: 'Warning', value: '199 Codec fallback: EVS → PCMU', type: 'string', error: true });
+  }
+
+  return [{ key: 'SIP-Message', value: msgName, type: 'section', children }];
+}
+
+function generateRtpDecoded(msgName: string, status: SessionStatus): DecodedField[] {
+  const ssrc = `0x${Math.floor(Math.random() * 0xFFFFFFFF).toString(16).padStart(8, '0')}`;
+  const seq  = Math.floor(Math.random() * 65535);
+  return [{
+    key: 'RTP-Header', value: msgName, type: 'section', children: [
+      { key: 'Version',          value: '2', type: 'number' },
+      { key: 'Padding',          value: 'false', type: 'bool' },
+      { key: 'Extension',        value: 'false', type: 'bool' },
+      { key: 'CC (CSRC count)',   value: '0', type: 'number' },
+      { key: 'Marker',           value: 'false', type: 'bool' },
+      { key: 'Payload Type',     value: '97 (EVS/16000)', type: 'enum' },
+      { key: 'Sequence Number',  value: String(seq), type: 'number' },
+      { key: 'Timestamp',        value: String(Math.floor(Math.random() * 0xFFFFFFFF)), type: 'number' },
+      { key: 'SSRC',             value: ssrc, type: 'hex' },
+      {
+        key: 'Payload', value: '', type: 'section', children: [
+          { key: 'Codec',         value: 'EVS (Enhanced Voice Services)', type: 'string' },
+          { key: 'Bitrate',       value: '13.2 kbps', type: 'string' },
+          { key: 'Bandwidth',     value: 'NB+WB+SWB+FB', type: 'string' },
+          { key: 'Frame size',    value: '20ms', type: 'string' },
+          ...(status === 'err' ? [{ key: 'Packet loss', value: 'true — stream interrupted', type: 'bool', error: true }] : []),
+        ],
+      },
+    ],
+  }];
+}
+
+function generateRtcpDecoded(msgName: string, status: SessionStatus): DecodedField[] {
+  const ssrc        = `0x${Math.floor(Math.random() * 0xFFFFFFFF).toString(16).padStart(8, '0')}`;
+  const packetsSent = Math.floor(Math.random() * 5000) + 500;
+  const octetsSent  = packetsSent * 172;
+  const jitter      = status === 'ok' ? Math.floor(Math.random() * 8) : Math.floor(Math.random() * 40) + 20;
+  const lostFrac    = status === 'err' ? Math.floor(Math.random() * 80) + 20 : status === 'warn' ? Math.floor(Math.random() * 15) : 0;
+
+  return [{
+    key: 'RTCP-SR', value: 'Sender Report', type: 'section', children: [
+      { key: 'Version',      value: '2', type: 'number' },
+      { key: 'Packet Type',  value: '200 (SR)', type: 'enum' },
+      { key: 'SSRC',         value: ssrc, type: 'hex' },
+      {
+        key: 'Sender Info', value: '', type: 'section', children: [
+          { key: 'NTP Timestamp',  value: new Date().toISOString(), type: 'string' },
+          { key: 'RTP Timestamp',  value: String(Math.floor(Math.random() * 0xFFFFFFFF)), type: 'number' },
+          { key: 'Packets Sent',   value: String(packetsSent), type: 'number' },
+          { key: 'Octets Sent',    value: String(octetsSent), type: 'number' },
+        ],
+      },
+      {
+        key: 'Report Block', value: '', type: 'section', children: [
+          { key: 'Fraction Lost',    value: `${lostFrac}/256`, type: 'number', error: lostFrac > 10 },
+          { key: 'Cumulative Lost',  value: String(Math.floor(packetsSent * lostFrac / 256)), type: 'number', error: lostFrac > 10 },
+          { key: 'Highest Seq',      value: String(Math.floor(Math.random() * 65535)), type: 'number' },
+          { key: 'Jitter',           value: `${jitter} samples (${Math.round(jitter * 1000 / 16000)}ms)`, type: 'string', error: jitter > 20 },
+          { key: 'Last SR (LSR)',    value: `0x${Math.floor(Math.random() * 0xFFFF).toString(16).padStart(4,'0')}`, type: 'hex' },
+          { key: 'Delay since LSR',  value: `${Math.floor(Math.random() * 100)}ms`, type: 'string' },
+        ],
+      },
+    ],
+  }];
+}
+
+function generateHttp2Decoded(msgName: string, status: SessionStatus): DecodedField[] {
+  const streamId = Math.floor(Math.random() * 255) * 2 + 1; // odd = client-initiated
+  return [{
+    key: 'HTTP2-Frame', value: 'HEADERS', type: 'section', children: [
+      { key: 'Frame Type',  value: '0x01 (HEADERS)', type: 'hex' },
+      { key: 'Flags',       value: '0x04 (END_HEADERS)', type: 'hex' },
+      { key: 'Stream ID',   value: String(streamId), type: 'number' },
+      {
+        key: 'HPACK Headers', value: '', type: 'section', children: [
+          { key: ':method',       value: status === 'err' ? 'GET' : 'POST', type: 'string' },
+          { key: ':path',         value: `/nsmf-pdusession/v1/sm-contexts`, type: 'string' },
+          { key: ':authority',    value: 'smf-01.core.rakuten.local', type: 'string' },
+          { key: ':scheme',       value: 'https', type: 'string' },
+          { key: 'content-type',  value: 'application/json', type: 'string' },
+          { key: '3gpp-sbi-message-priority', value: '1', type: 'number' },
+          ...(status === 'err' ? [
+            { key: ':status', value: '400 Bad Request', type: 'enum', error: true },
+            { key: 'cause',   value: 'MANDATORY_IE_MISSING', type: 'enum', error: true },
+          ] : [
+            { key: ':status', value: '201 Created', type: 'enum' },
+          ]),
+        ],
+      },
+    ],
+  }];
+}
+
 function generateDecoded(msgName: string, protocol: string, status: SessionStatus, cause?: string): DecodedField[] {
   switch (protocol) {
     case 'NAS':   return generateNasDecoded(msgName, status, cause);
     case 'NGAP':  return generateNgapDecoded(msgName, status);
     case 'PFCP':  return generatePfcpDecoded(msgName, status);
+    case 'SIP':   return generateSipDecoded(msgName, status);
+    case 'RTP':   return generateRtpDecoded(msgName, status);
+    case 'RTCP':  return generateRtcpDecoded(msgName, status);
+    case 'HTTP2': return generateHttp2Decoded(msgName, status);
     default:
-      return [
-        {
-          key: protocol, value: msgName, type: 'section', children: [
-            { key: 'Status', value: status === 'err' ? 'failure' : 'success', type: 'enum', error: status === 'err' },
-          ],
-        },
-      ];
+      return [{
+        key: protocol, value: msgName, type: 'section', children: [
+          { key: 'Status', value: status === 'err' ? 'failure' : 'success', type: 'enum', error: status === 'err' },
+        ],
+      }];
   }
 }
 
