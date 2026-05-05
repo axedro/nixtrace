@@ -1,0 +1,76 @@
+.fb-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: var(--filterbar-h);
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.fb-wrap::-webkit-scrollbar { height: 3px; }
+
+.fb-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fb-input {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  width: 140px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.fb-input::placeholder { color: var(--text-dim); }
+.fb-input:focus { border-color: var(--accent-green); }
+
+.fb-select {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  padding: 3px 24px 3px 8px;
+  border-radius: 3px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234A4F5E'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.fb-select:focus { border-color: var(--accent-green); }
+.fb-select option { background: var(--bg-sidebar); }
+
+.fb-select--active { border-color: var(--accent-amber); color: var(--accent-amber); }
+
+.fb-div { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; margin: 0 2px; }
+
+.fb-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.fb-clear-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }

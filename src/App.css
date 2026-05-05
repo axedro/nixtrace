@@ -1,0 +1,53 @@
+.app {
+  display: grid;
+  grid-template-rows: var(--header-h) var(--filterbar-h) 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-body {
+  display: grid;
+  grid-template-columns: 480px 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Right panel ─────────────────────────────────────────────────────────── */
+.app-right {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-tabs {
+  display: flex;
+  align-items: center;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.app-tab {
+  padding: 0 18px;
+  height: 34px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: color 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.app-tab:hover { color: var(--text-primary); }
+.app-tab--active {
+  color: var(--accent-green);
+  border-bottom-color: var(--accent-green);
+}
+
+.app-panel {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}

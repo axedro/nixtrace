@@ -1,0 +1,149 @@
+.md-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.md-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 34px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 12px;
+}
+.md-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.md-msg-tag {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  opacity: 0.85;
+}
+
+.md-body {
+  display: grid;
+  grid-template-rows: 30% 40% 30%;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Message list panel ─────────────────────────────────────────────────── */
+.md-msglist {
+  overflow-y: auto;
+  border-bottom: 1px solid var(--border);
+}
+.md-msg-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  height: 26px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.1s;
+}
+.md-msg-row:hover { background: var(--bg-row-hover); }
+.md-msg-row--selected {
+  border-left-color: var(--border-ok);
+  background: var(--bg-selected);
+}
+.md-msg-row--err  { border-left-color: var(--border-err) !important; }
+.md-msg-row--warn { border-left-color: var(--border-warn) !important; }
+
+.md-seq {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  min-width: 20px;
+  text-align: right;
+}
+.md-msgname {
+  font-size: 12px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.md-proto-badge {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.md-byte-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ── Decode tree panel ──────────────────────────────────────────────────── */
+.md-decode {
+  overflow-y: auto;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.dt-node { padding: 0 8px; white-space: nowrap; }
+.dt-section {
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+.dt-section:hover { color: var(--accent-green); }
+.dt-chevron { color: var(--text-dim); font-size: 10px; }
+.dt-leaf { display: flex; gap: 6px; }
+.dt-key   { color: var(--accent-blue); }
+.dt-value { color: var(--accent-green); }
+.dt-hex   { color: var(--text-secondary); font-size: 11px; }
+.dt-err .dt-key,
+.dt-err .dt-value { color: var(--accent-red) !important; }
+.dt-empty { color: var(--text-dim); padding: 8px 12px; font-size: 12px; }
+
+/* ── Hex dump panel ─────────────────────────────────────────────────────── */
+.md-hex {
+  overflow-y: auto;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 18px;
+}
+.hex-row { display: flex; gap: 0; white-space: nowrap; }
+.hex-offset { color: var(--accent-blue); min-width: 44px; }
+.hex-bytes  { display: flex; gap: 0; flex: none; }
+.hex-byte   { min-width: 22px; color: var(--text-primary); }
+.hex-byte:hover { background: rgba(29,158,117,0.18); color: var(--accent-green); border-radius: 2px; }
+.hex-empty  { min-width: 22px; color: var(--text-dim); }
+.hex-gap    { min-width: 10px; }
+.hex-ascii  {
+  color: var(--text-secondary);
+  border-left: 1px solid var(--border);
+  padding-left: 8px;
+  margin-left: 4px;
+  letter-spacing: 0.5px;
+}
+.md-empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: var(--text-dim); font-size: 13px;
+}
