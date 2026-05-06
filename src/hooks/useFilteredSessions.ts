@@ -11,7 +11,7 @@ export function useFilteredSessions(): Session[] {
       if (filter.status    !== 'all' && s.status    !== filter.status)    return false;
       if (filter.slice     !== 'all' && s.slice     !== filter.slice)     return false;
       if (filter.procedure !== 'all' && s.procedure !== filter.procedure) return false;
-      if (filter.iface     !== 'all' && s.primary_iface !== filter.iface) return false;
+      if (filter.iface !== 'all' && !s.messages.some((m) => m.iface === filter.iface)) return false;
       if (filter.imsi && !s.imsi.includes(filter.imsi))                   return false;
       return true;
     });
