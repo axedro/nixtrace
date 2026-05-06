@@ -13,12 +13,12 @@
   --accent-green: #1D9E75;
   --accent-red:   #E24B4A;
   --accent-amber: #E5A234;
-  --accent-blue:  #185FA5;
+  --accent-blue:  #4A90D9;
   --accent-purple:#8B5CF6;
 
   --text-primary:   #E4E6ED;
-  --text-secondary: #7A7F8E;
-  --text-dim:       #4A4F5E;
+  --text-secondary: #9AA0B4;
+  --text-dim:       #6A7080;
 
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   --font-ui:   'Inter', system-ui, sans-serif;
@@ -26,6 +26,29 @@
   --row-height:   28px;
   --header-h:     44px;
   --filterbar-h:  40px;
+}
+
+[data-theme="light"] {
+  --bg-main:      #F4F5F8;
+  --bg-sidebar:   #E8EBF2;
+  --bg-panel:     #FFFFFF;
+  --bg-row-hover: #ECF0F6;
+  --bg-selected:  rgba(29, 158, 117, 0.10);
+
+  --border:       #C8CDD8;
+  --border-ok:    #1A8F68;
+  --border-err:   #CC3534;
+  --border-warn:  #B87E18;
+
+  --accent-green: #1A8F68;
+  --accent-red:   #CC3534;
+  --accent-amber: #B87E18;
+  --accent-blue:  #2270C8;
+  --accent-purple:#7C3AED;
+
+  --text-primary:   #1A1D23;
+  --text-secondary: #4A5060;
+  --text-dim:       #7A808F;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,8 +68,8 @@ body {
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-panel); }
-::-webkit-scrollbar-thumb { background: #3A3D46; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #4A4D56; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
 :focus-visible { outline: 1px solid var(--accent-green); outline-offset: 1px; }
 ::selection { background: rgba(29, 158, 117, 0.25); }

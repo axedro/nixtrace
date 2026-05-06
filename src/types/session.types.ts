@@ -144,6 +144,7 @@ export interface NIxTraceStore {
   triggerActive:   boolean;
   bufferSize:      number;
   showTriggerModal:boolean;
+  theme:           'dark' | 'light';
   addSession:      (s: Session) => void;
   selectSession:   (s: Session | null) => void;
   selectMessage:   (m: LadderMessage | null) => void;
@@ -156,6 +157,7 @@ export interface NIxTraceStore {
   setTriggerActive:(v: boolean) => void;
   setBufferSize:   (n: number) => void;
   setShowTriggerModal: (v: boolean) => void;
+  setTheme:        (t: 'dark' | 'light') => void;
 }
 
 export interface DemoScenario {

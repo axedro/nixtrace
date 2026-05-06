@@ -5,20 +5,39 @@ import type { LadderMessage, NfNode } from '../../types/session.types';
 import './LadderDiagram.css';
 
 // All colors hardcoded — CSS variables don't survive SVG serialization
-const C = {
-  bg:        '#0E1016',
-  bgPanel:   '#12141A',
-  border:    '#2A2D36',
-  ok:        '#1D9E75',
-  err:       '#E24B4A',
-  warn:      '#E5A234',
-  blue:      '#185FA5',
-  text:      '#E4E6ED',
-  textDim:   '#4A4F5E',
-  textSec:   '#7A7F8E',
-  lifeline:  '#2A2D36',
-  selected:  'rgba(29,158,117,0.08)',
+const DARK_C = {
+  bg:       '#0E1016',
+  bgPanel:  '#12141A',
+  border:   '#2A2D36',
+  ok:       '#1D9E75',
+  err:      '#E24B4A',
+  warn:     '#E5A234',
+  blue:     '#4A90D9',
+  text:     '#E4E6ED',
+  textDim:  '#6A7080',
+  textSec:  '#9AA0B4',
+  arrow:    '#8090A8',
+  lifeline: '#2A2D36',
+  selected: 'rgba(29,158,117,0.08)',
 } as const;
+
+const LIGHT_C = {
+  bg:       '#F4F5F8',
+  bgPanel:  '#FFFFFF',
+  border:   '#C8CDD8',
+  ok:       '#1A8F68',
+  err:      '#CC3534',
+  warn:     '#B87E18',
+  blue:     '#2270C8',
+  text:     '#1A1D23',
+  textDim:  '#7A808F',
+  textSec:  '#4A5060',
+  arrow:    '#5A6580',
+  lifeline: '#C8CDD8',
+  selected: 'rgba(29,158,117,0.10)',
+} as const;
+
+type ColorSet = typeof DARK_C;
 
 const LEFT_MARGIN   = 56;
 const COL_WIDTH     = 150;
@@ -35,10 +54,10 @@ function arrowhead(x: number, y: number, dir: 'right' | 'left'): string {
   return `${x},${y} ${x - s * 8},${y - 4} ${x - s * 8},${y + 4}`;
 }
 
-function colorByStatus(status: string) {
+function colorByStatus(status: string, C: ColorSet) {
   if (status === 'err')  return C.err;
   if (status === 'warn') return C.warn;
-  return C.textSec;
+  return C.arrow;
 }
 
 // Find NF node index, using role discriminator for Handover gNBs
@@ -62,6 +81,8 @@ export function LadderDiagram() {
   const session        = useNIxStore((s) => s.selectedSession);
   const selectedMsg    = useNIxStore((s) => s.selectedMessage);
   const selectMessage  = useNIxStore((s) => s.selectMessage);
+  const theme          = useNIxStore((s) => s.theme);
+  const C              = theme === 'light' ? LIGHT_C : DARK_C;
   const svgRef         = useRef<SVGSVGElement>(null);
 
   if (!session) {
@@ -160,7 +181,7 @@ export function LadderDiagram() {
             const toX     = colX(toIdx);
             const midX    = (fromX + toX) / 2;
             const dir     = toX >= fromX ? 'right' : 'left';
-            const color   = colorByStatus(msg.status);
+            const color   = colorByStatus(msg.status, C);
             const isSelected = selectedMsg?.id === msg.id;
             const relMs   = relativeMs(messages, idx);
 

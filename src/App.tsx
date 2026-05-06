@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import { useRealtimeSessions } from './hooks/useRealtimeSessions';
 import { useNIxStore } from './store/nixStore';
@@ -30,6 +30,11 @@ function App() {
   const selectedSession = useNIxStore((s) => s.selectedSession);
   const selectedMessage = useNIxStore((s) => s.selectedMessage);
   const showTrigger     = useNIxStore((s) => s.showTriggerModal);
+  const theme           = useNIxStore((s) => s.theme);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   // Auto-switch to decode tab when a message is clicked in the ladder
   const [prevMsgId, setPrevMsgId] = useState<string | null>(null);

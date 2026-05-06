@@ -52,6 +52,8 @@ export function TopBar({ onScenario, activeScenario }: TopBarProps) {
   const triggerActive = useNIxStore((s) => s.triggerActive);
   const triggerRules  = useNIxStore((s) => s.triggerRules);
   const setShowTrigger= useNIxStore((s) => s.setShowTriggerModal);
+  const theme         = useNIxStore((s) => s.theme);
+  const setTheme      = useNIxStore((s) => s.setTheme);
 
   const [clock, setClock] = useState(() => format(new Date(), 'HH:mm:ss'));
 
@@ -157,6 +159,15 @@ export function TopBar({ onScenario, activeScenario }: TopBarProps) {
       >
         {liveMode && <span className="tb-live-pulse" />}
         LIVE
+      </button>
+
+      {/* Theme toggle */}
+      <button
+        className="tb-theme-btn"
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {theme === 'dark' ? '◑ Light' : '◐ Dark'}
       </button>
 
       {/* Clock */}

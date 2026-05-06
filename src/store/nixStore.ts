@@ -46,6 +46,11 @@ export const useNIxStore = create<NIxTraceStore>((set, get) => ({
   triggerActive:    false,
   bufferSize:       500,
   showTriggerModal: false,
+  theme: (() => {
+    const t = (localStorage.getItem('nixtrace-theme') as 'dark' | 'light') ?? 'dark';
+    document.documentElement.dataset.theme = t;
+    return t;
+  })(),
 
   addSession: (s) =>
     set((state) => {
@@ -70,6 +75,7 @@ export const useNIxStore = create<NIxTraceStore>((set, get) => ({
   setTriggerActive:(v) => set({ triggerActive: v }),
   setBufferSize:  (n) => set({ bufferSize: n }),
   setShowTriggerModal: (v) => set({ showTriggerModal: v }),
+  setTheme: (t) => { localStorage.setItem('nixtrace-theme', t); set({ theme: t }); },
 }));
 
 export { DEFAULT_FILTER };
