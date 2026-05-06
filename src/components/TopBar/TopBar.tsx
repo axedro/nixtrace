@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import clsx from 'clsx';
 import { useNIxStore } from '../../store/nixStore';
-import { isOfflineMode } from '../../lib/supabaseClient';
+import { isOfflineMode, signOut } from '../../lib/supabaseClient';
+import { useAuth } from '../../hooks/useAuth';
 import { ExportMenu } from '../ExportMenu/ExportMenu';
 import type { DemoScenario, CaptureMode } from '../../types/session.types';
 import './TopBar.css';
@@ -54,6 +55,7 @@ export function TopBar({ onScenario, activeScenario }: TopBarProps) {
   const setShowTrigger= useNIxStore((s) => s.setShowTriggerModal);
   const theme         = useNIxStore((s) => s.theme);
   const setTheme      = useNIxStore((s) => s.setTheme);
+  const { user }      = useAuth();
 
   const [clock, setClock] = useState(() => format(new Date(), 'HH:mm:ss'));
 
@@ -172,6 +174,17 @@ export function TopBar({ onScenario, activeScenario }: TopBarProps) {
 
       {/* Clock */}
       <span className="tb-clock">{clock}</span>
+
+      {/* Sign out — only when authenticated */}
+      {user && !isOfflineMode && (
+        <button
+          className="tb-theme-btn"
+          onClick={() => signOut()}
+          title={`Signed in as ${user.email}`}
+        >
+          Sign out
+        </button>
+      )}
     </div>
   );
 }

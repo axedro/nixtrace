@@ -1,0 +1,19 @@
+name: Seed NIxTrace sessions
+
+on:
+  schedule:
+    - cron: '* * * * *'   # every minute
+  workflow_dispatch:        # manual trigger for testing
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Call seed-sessions Edge Function
+        run: |
+          curl -sf -X POST \
+            "${{ secrets.SUPABASE_EDGE_FUNCTION_URL }}/seed-sessions" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json" \
+            --max-time 30

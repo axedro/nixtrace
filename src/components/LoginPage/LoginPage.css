@@ -1,0 +1,105 @@
+.login-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg-main);
+}
+
+.login-card {
+  width: 360px;
+  padding: 40px 36px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Logo */
+.login-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  justify-content: center;
+}
+.login-logo-nix   { font-size: 24px; font-weight: 700; color: var(--accent-green); letter-spacing: -0.5px; }
+.login-logo-trace { font-size: 24px; font-weight: 400; color: var(--text-primary); letter-spacing: -0.5px; }
+.login-logo-tag   { font-size: 10px; color: var(--text-dim); margin-left: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+.login-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Form */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-input {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.login-input:focus {
+  border-color: var(--accent-green);
+}
+.login-input::placeholder {
+  color: var(--text-dim);
+}
+
+.login-btn {
+  padding: 9px 12px;
+  background: var(--accent-green);
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.login-btn:hover:not(:disabled) { opacity: 0.88; }
+.login-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.login-error {
+  font-size: 12px;
+  color: var(--accent-red);
+  margin: 0;
+  text-align: center;
+}
+
+/* Sent state */
+.login-sent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.login-sent p { margin: 0; }
+.login-sent-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(29, 158, 117, 0.15);
+  color: var(--accent-green);
+  font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-sent-hint { color: var(--text-dim); font-size: 12px; }
