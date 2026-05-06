@@ -54,8 +54,15 @@ export function useRealtimeSessions() {
         [...data].reverse().forEach((row) => addSession(row as Session));
       });
 
+    // Keep Realtime auth token in sync with the user session
+    const { data: { subscription: authSub } } = supabase!.auth.onAuthStateChange(
+      (_event, session) => {
+        supabase!.realtime.setAuth(session?.access_token ?? null);
+      }
+    );
+
     // Subscribe to INSERT events
-    const channel = supabase
+    const channel = supabase!
       .channel('sessions-live')
       .on(
         'postgres_changes',
@@ -71,6 +78,7 @@ export function useRealtimeSessions() {
       });
 
     return () => {
+      authSub.unsubscribe();
       supabase!.removeChannel(channel);
       setConnected(false);
     };

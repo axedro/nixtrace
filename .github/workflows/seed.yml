@@ -8,7 +8,7 @@ on:
 jobs:
   seed:
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 2
     steps:
       - name: Call seed-sessions Edge Function
         run: |
@@ -16,4 +16,4 @@ jobs:
             "${{ secrets.SUPABASE_EDGE_FUNCTION_URL }}/seed-sessions" \
             -H "Authorization: Bearer ${{ secrets.SEED_SECRET }}" \
             -H "Content-Type: application/json" \
-            --max-time 30
+            --max-time 60
