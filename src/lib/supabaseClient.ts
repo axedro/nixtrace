@@ -11,3 +11,7 @@ export const isOfflineMode =
 export const supabase = isOfflineMode
   ? null
   : createClient(supabaseUrl, supabaseKey);
+
+export function signOut(): Promise<void> {
+  return supabase?.auth.signOut().then(() => undefined) ?? Promise.resolve();
+}

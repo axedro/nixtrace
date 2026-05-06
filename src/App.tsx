@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import { useRealtimeSessions } from './hooks/useRealtimeSessions';
+import { useAuth } from './hooks/useAuth';
 import { useNIxStore } from './store/nixStore';
+import { isOfflineMode } from './lib/supabaseClient';
 import { TopBar } from './components/TopBar/TopBar';
 import { FilterBar } from './components/FilterBar/FilterBar';
 import { SessionTable } from './components/SessionTable/SessionTable';
@@ -10,6 +12,7 @@ import { MessageDecode } from './components/MessageDecode/MessageDecode';
 import { SessionKPIs } from './components/SessionKPIs/SessionKPIs';
 import { DPIPanel } from './components/DPIPanel/DPIPanel';
 import { TriggerModal } from './components/TriggerModal/TriggerModal';
+import { LoginPage } from './components/LoginPage/LoginPage';
 import './App.css';
 
 type TabId = 'ladder' | 'decode' | 'kpis' | 'dpi';
@@ -23,6 +26,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 function App() {
   useRealtimeSessions();
+  const { user, loading } = useAuth();
 
   const [activeTab, setActiveTab]           = useState<TabId>('ladder');
   const [activeScenario, setActiveScenario] = useState<'A' | 'B' | 'C' | null>(null);
@@ -50,6 +54,18 @@ function App() {
     if (selectedSession.procedure.startsWith('VoNR') && activeTab !== 'dpi') {
       setActiveTab('dpi');
     }
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'var(--bg-main)' }}>
+        <span style={{ color:'var(--text-dim)', fontFamily:'var(--font-mono)', fontSize:12 }}>Authenticating…</span>
+      </div>
+    );
+  }
+
+  if (!user && !isOfflineMode) {
+    return <LoginPage />;
   }
 
   return (
