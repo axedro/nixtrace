@@ -47,7 +47,7 @@ export const useNIxStore = create<NIxTraceStore>((set, get) => ({
   bufferSize:       500,
   showTriggerModal: false,
   theme: (() => {
-    const t = (localStorage.getItem('nixtrace-theme') as 'dark' | 'light') ?? 'dark';
+    const t = (localStorage.getItem('nixtrace-theme') as 'dark' | 'light') ?? 'light';
     document.documentElement.dataset.theme = t;
     return t;
   })(),
