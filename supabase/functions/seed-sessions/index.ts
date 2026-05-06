@@ -725,19 +725,28 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const supabaseUrl  = Deno.env.get('SUPABASE_URL') ?? '';
-  const serviceKey   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const supabase = createClient(supabaseUrl, serviceKey);
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  const supabase    = createClient(supabaseUrl, serviceKey);
 
-  const COUNT = 45;
-  const sessions = Array.from({ length: COUNT }, generateSession);
+  // Stream one session at a time with a 800–1500ms gap, covering ~55s so the
+  // next GitHub Actions cron (every 60s) overlaps cleanly with no dead air.
+  const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+  const DURATION_MS = 55_000;
+  const start = Date.now();
+  let inserted = 0;
 
-  const { error } = await supabase.from('sessions').insert(sessions);
-  if (error) {
-    console.error('Insert error:', error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  while (Date.now() - start < DURATION_MS) {
+    const { error } = await supabase.from('sessions').insert(generateSession());
+    if (error) {
+      console.error('Insert error:', error.message);
+      break;
+    }
+    inserted++;
+    const gap = 800 + Math.floor(Math.random() * 700); // 800–1500ms
+    await sleep(gap);
   }
 
-  console.log(`Inserted ${COUNT} sessions`);
-  return new Response(JSON.stringify({ inserted: COUNT }), { headers: { 'Content-Type': 'application/json' } });
+  console.log(`Streamed ${inserted} sessions over ${Date.now() - start}ms`);
+  return new Response(JSON.stringify({ inserted }), { headers: { 'Content-Type': 'application/json' } });
 });
