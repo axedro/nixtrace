@@ -719,13 +719,14 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: 'POST required' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const authHeader = req.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ') || authHeader.slice(7) !== serviceKey) {
+  const seedSecret  = Deno.env.get('SEED_SECRET') ?? '';
+  const authHeader  = req.headers.get('Authorization') ?? '';
+  if (!authHeader.startsWith('Bearer ') || authHeader.slice(7) !== seedSecret) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const supabaseUrl  = Deno.env.get('SUPABASE_URL') ?? '';
+  const serviceKey   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   const supabase = createClient(supabaseUrl, serviceKey);
 
   const COUNT = 45;
