@@ -37,7 +37,7 @@ const LIGHT_C = {
   selected: 'rgba(29,158,117,0.10)',
 } as const;
 
-type ColorSet = typeof DARK_C;
+type ColorSet = { [K in keyof typeof DARK_C]: string };
 
 const LEFT_MARGIN   = 56;
 const COL_WIDTH     = 150;

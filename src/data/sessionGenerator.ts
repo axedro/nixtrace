@@ -397,7 +397,7 @@ function generateNgapDecoded(msgName: string, status: SessionStatus): DecodedFie
             { key: 'AMF-UE-NGAP-ID', value: String(Math.floor(Math.random() * 65535)), type: 'number' },
             { key: 'NAS-PDU', value: '...embedded...', type: 'hex' },
             ...(status === 'err' ? [
-              { key: 'Cause', value: 'Protocol: message-not-compatible-with-receiver-state', type: 'enum', error: true },
+              { key: 'Cause', value: 'Protocol: message-not-compatible-with-receiver-state', type: 'enum' as const, error: true },
             ] : []),
           ],
         },
@@ -420,9 +420,9 @@ function generatePfcpDecoded(msgName: string, status: SessionStatus): DecodedFie
           ],
         },
         ...(status === 'err' ? [
-          { key: 'Cause', value: 'Session context not found (#64)', type: 'enum', error: true },
+          { key: 'Cause', value: 'Session context not found (#64)', type: 'enum' as const, error: true },
         ] : [
-          { key: 'Cause', value: 'Request accepted (#1)', type: 'enum' },
+          { key: 'Cause', value: 'Request accepted (#1)', type: 'enum' as const },
         ]),
       ],
     },
@@ -511,14 +511,14 @@ function generateRtpDecoded(msgName: string, status: SessionStatus): DecodedFiel
           { key: 'Bitrate',       value: '13.2 kbps', type: 'string' },
           { key: 'Bandwidth',     value: 'NB+WB+SWB+FB', type: 'string' },
           { key: 'Frame size',    value: '20ms', type: 'string' },
-          ...(status === 'err' ? [{ key: 'Packet loss', value: 'true — stream interrupted', type: 'bool', error: true }] : []),
+          ...(status === 'err' ? [{ key: 'Packet loss', value: 'true — stream interrupted', type: 'bool' as const, error: true }] : []),
         ],
       },
     ],
   }];
 }
 
-function generateRtcpDecoded(msgName: string, status: SessionStatus): DecodedField[] {
+function generateRtcpDecoded(_msgName: string, status: SessionStatus): DecodedField[] {
   const ssrc        = `0x${Math.floor(Math.random() * 0xFFFFFFFF).toString(16).padStart(8, '0')}`;
   const packetsSent = Math.floor(Math.random() * 5000) + 500;
   const octetsSent  = packetsSent * 172;
@@ -552,7 +552,7 @@ function generateRtcpDecoded(msgName: string, status: SessionStatus): DecodedFie
   }];
 }
 
-function generateHttp2Decoded(msgName: string, status: SessionStatus): DecodedField[] {
+function generateHttp2Decoded(_msgName: string, status: SessionStatus): DecodedField[] {
   const streamId = Math.floor(Math.random() * 255) * 2 + 1; // odd = client-initiated
   return [{
     key: 'HTTP2-Frame', value: 'HEADERS', type: 'section', children: [
@@ -568,10 +568,10 @@ function generateHttp2Decoded(msgName: string, status: SessionStatus): DecodedFi
           { key: 'content-type',  value: 'application/json', type: 'string' },
           { key: '3gpp-sbi-message-priority', value: '1', type: 'number' },
           ...(status === 'err' ? [
-            { key: ':status', value: '400 Bad Request', type: 'enum', error: true },
-            { key: 'cause',   value: 'MANDATORY_IE_MISSING', type: 'enum', error: true },
+            { key: ':status', value: '400 Bad Request', type: 'enum' as const, error: true },
+            { key: 'cause',   value: 'MANDATORY_IE_MISSING', type: 'enum' as const, error: true },
           ] : [
-            { key: ':status', value: '201 Created', type: 'enum' },
+            { key: ':status', value: '201 Created', type: 'enum' as const },
           ]),
         ],
       },

@@ -33,7 +33,7 @@ function matchesTrigger(rule: TriggerRule, s: Session): boolean {
   }
 }
 
-export const useNIxStore = create<NIxTraceStore>((set, get) => ({
+export const useNIxStore = create<NIxTraceStore>((set) => ({
   sessions:         [],
   selectedSession:  null,
   selectedMessage:  null,

@@ -71,7 +71,7 @@ export function useRealtimeSessions() {
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase!.removeChannel(channel);
       setConnected(false);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
