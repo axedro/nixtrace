@@ -2,18 +2,21 @@ name: Seed NIxTrace sessions
 
 on:
   schedule:
-    - cron: '* * * * *'   # every minute
-  workflow_dispatch:        # manual trigger for testing
+    - cron: '0 */6 * * *'   # restart every 6 h so it never dies
+  workflow_dispatch:          # manual trigger / on-demand
 
 jobs:
   seed:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 360      # run up to 6 hours
     steps:
-      - name: Call seed-sessions Edge Function
+      - name: Stream sessions continuously (one per ~1.3s via Edge Function)
         run: |
-          curl -sf -X POST \
-            "${{ secrets.SUPABASE_EDGE_FUNCTION_URL }}/seed-sessions" \
-            -H "Authorization: Bearer ${{ secrets.SEED_SECRET }}" \
-            -H "Content-Type: application/json" \
-            --max-time 60
+          echo "Starting continuous seed loop..."
+          while true; do
+            curl -sf -X POST \
+              "${{ secrets.SUPABASE_EDGE_FUNCTION_URL }}/seed-sessions" \
+              -H "Authorization: Bearer ${{ secrets.SEED_SECRET }}" \
+              -H "Content-Type: application/json" \
+              --max-time 60 || echo "Edge Function call failed, retrying..."
+          done
