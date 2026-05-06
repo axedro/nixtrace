@@ -85,43 +85,207 @@ function jitter(base: number, pct = 0.2): number {
   return Math.round(base * (1 + (Math.random() * 2 - 1) * pct));
 }
 
-function generateRawHex(byteLen: number, protocol: string): string {
+// ── NAS/PFCP byte builders (TS 24.501 / TS 29.244) ───────────────────────────
+
+function buildSuci(imsi: string): number[] {
+  const mcc  = imsi.slice(0, 3);
+  const mnc  = imsi.slice(3, 5);
+  const msin = imsi.slice(5);
+  const m = (s: string) => s.split('').map(Number);
+  const mccD = m(mcc), mncD = m(mnc);
+  const bytes: number[] = [
+    0x01,                               // identity type=SUCI, SUPI format=IMSI
+    (mccD[1] << 4) | mccD[0],          // MCC digit2|digit1
+    (0xF  << 4) | mccD[2],             // MNC digit3=F (2-digit MNC) | MCC digit3
+    (mncD[1] << 4) | mncD[0],          // MNC digit2|digit1
+    0xFF, 0xFF,                         // Routing Indicator (absent)
+    0x00, 0x00,                         // Protection Scheme=null, HNPK ID=0
+  ];
+  for (let i = 0; i < msin.length; i += 2) {
+    const hi = parseInt(msin[i], 10);
+    const lo = i + 1 < msin.length ? parseInt(msin[i + 1], 10) : 0xF;
+    bytes.push((hi << 4) | lo);
+  }
+  return bytes;
+}
+
+function buildGuti(): number[] {
+  const bytes: number[] = [
+    0x06,                  // identity type = 5G-GUTI
+    0x44, 0xF0, 0x10,     // MCC=440, MNC=10 (Rakuten Japan)
+    0x01, 0x02, 0x01,     // AMF Region ID, Set ID, Pointer
+  ];
+  for (let i = 0; i < 4; i++) bytes.push(Math.floor(Math.random() * 256));
+  return bytes;
+}
+
+function generateNasRaw(msgName: string, imsi: string, byteLen: number): number[] {
+  const r = () => Math.floor(Math.random() * 256);
   const bytes: number[] = [];
-  if (protocol === 'NAS') {
-    bytes.push(0x7e, 0x00, 0x41); // EPD · Security Header · Reg Request
-  } else if (protocol === 'NGAP') {
-    bytes.push(0x00, 0x0f, 0x40); // NGAP initiating message
-  } else if (protocol === 'PFCP') {
-    bytes.push(0x21, 0x00);        // PFCP v1, SEID present
-  } else if (protocol === 'HTTP2') {
-    bytes.push(0x00, 0x00, 0x00, 0x01, 0x04); // HEADERS frame
-  } else if (protocol === 'XnAP') {
-    bytes.push(0x00, 0x24, 0x00);  // XnAP InitiatingMessage
-  } else if (protocol === 'SIP') {
-    // SIP/2.0 ASCII header start: "SIP/" = 0x53 0x49 0x50 0x2F
-    bytes.push(0x53, 0x49, 0x50, 0x2F, 0x32, 0x2E, 0x30, 0x20); // "SIP/2.0 "
-  } else if (protocol === 'RTP') {
-    // RTP fixed header: V=2, P=0, X=0, CC=0, M=0, PT=97 (dynamic, EVS codec)
-    bytes.push(0x80, 0x61); // V=2, PT=97
-    const seq = Math.floor(Math.random() * 65535);
-    bytes.push((seq >> 8) & 0xff, seq & 0xff);
-    const ts = Math.floor(Math.random() * 0xFFFFFFFF);
-    bytes.push((ts >> 24) & 0xff, (ts >> 16) & 0xff, (ts >> 8) & 0xff, ts & 0xff);
-    const ssrc = Math.floor(Math.random() * 0xFFFFFFFF);
-    bytes.push((ssrc >> 24) & 0xff, (ssrc >> 16) & 0xff, (ssrc >> 8) & 0xff, ssrc & 0xff);
-  } else if (protocol === 'RTCP') {
-    // RTCP Sender Report: V=2, P=0, RC=0, PT=200 (SR)
-    bytes.push(0x80, 0xc8); // V=2, PT=200 SR
-    const len = Math.floor(byteLen / 4) - 1;
-    bytes.push((len >> 8) & 0xff, len & 0xff);
-    const ssrc = Math.floor(Math.random() * 0xFFFFFFFF);
-    bytes.push((ssrc >> 24) & 0xff, (ssrc >> 16) & 0xff, (ssrc >> 8) & 0xff, ssrc & 0xff);
+
+  if (msgName.includes('PDU Session') || msgName.includes('IMS APN')) {
+    // 5GSM (TS 24.501 §9.7): EPD=0x2e
+    bytes.push(0x2e, 0x05, 0x01); // EPD, PDU Session ID=5, PTI=1
+    if (msgName.includes('Request') && !msgName.includes('Release'))        bytes.push(0xC1, 0x01, 0x29);
+    else if (msgName.includes('Accept'))                                     bytes.push(0xC2);
+    else if (msgName.includes('Release') && msgName.includes('Request'))     bytes.push(0xD1);
+    else if (msgName.includes('Release') && msgName.includes('Command'))     bytes.push(0xD3);
+    else if (msgName.includes('Release') && msgName.includes('Complete'))    bytes.push(0xD4);
+    else if (msgName.includes('Mod') && msgName.includes('Command'))         bytes.push(0xCB);
+    else if (msgName.includes('Mod'))                                        bytes.push(0xC9);
+    else                                                                     bytes.push(0xC1);
   } else {
-    bytes.push(0x00, 0x00);
+    // 5GMM (TS 24.501 §8): EPD=0x7e
+    bytes.push(0x7e, 0x00);
+
+    if (msgName === 'Registration Request') {
+      bytes.push(0x41, 0x79); // msg type, ngKSI=7+reg type=initial+follow-on
+      const suci = buildSuci(imsi);
+      bytes.push(0x77, 0x00, suci.length, ...suci);
+
+    } else if (msgName === 'Registration Accept') {
+      bytes.push(0x42, 0x01); // msg type, 5GS reg result=3GPP
+      const guti = buildGuti();
+      bytes.push(0x77, 0x00, guti.length, ...guti);
+
+    } else if (msgName === 'Registration Complete') {
+      bytes.push(0x43);
+
+    } else if (msgName.includes('Authentication Request')) {
+      bytes.push(0x56, 0x70);               // msg type, ngKSI
+      bytes.push(0x38, 0x02, 0x00, 0x00);   // ABBA IE
+      for (let i = 0; i < 16; i++) bytes.push(r()); // RAND (16 B)
+      bytes.push(0x20, 0x10);               // AUTN IEI + length=16
+      for (let i = 0; i < 16; i++) bytes.push(r()); // AUTN
+
+    } else if (msgName.includes('Authentication Response')) {
+      bytes.push(0x57);
+      bytes.push(0x2D, 0x10);               // RES* IEI + length=16
+      for (let i = 0; i < 16; i++) bytes.push(r());
+
+    } else if (msgName.includes('Authentication Failure')) {
+      bytes.push(0x58, 0x18);               // msg type, 5GMM Cause: MAC failure
+
+    } else if (msgName.includes('Security Mode Command')) {
+      bytes.push(0x5D);
+      bytes.push(0x22);                     // NAS algorithms: EA2+IA2
+      bytes.push(0x70);                     // ngKSI
+      bytes.push(0x21, 0x04, 0xE0, 0xE0, 0x00, 0x00); // UE 5G security cap IE
+
+    } else if (msgName.includes('Security Mode Complete')) {
+      bytes.push(0x5E);
+
+    } else if (msgName.includes('Deregistration')) {
+      bytes.push(0x45, 0x01, 0x70); // msg type, dereg type, ngKSI
+      const guti = buildGuti();
+      bytes.push(0x77, 0x00, guti.length, ...guti);
+
+    } else if (msgName.includes('Service Request')) {
+      bytes.push(0x4C, 0x00, 0x70); // msg type, service type, ngKSI
+
+    } else if (msgName.includes('Service Reject')) {
+      bytes.push(0x4D, 0x16); // msg type, 5GMM Cause: Congestion
+
+    } else if (msgName.includes('Service Accept')) {
+      bytes.push(0x4E);
+
+    } else if (msgName.includes('Configuration Update') || msgName.includes('Config Update')) {
+      bytes.push(0x54);
+
+    } else {
+      bytes.push(0x00); // Unknown/RRC/data-path events
+    }
   }
-  while (bytes.length < byteLen) {
-    bytes.push(Math.floor(Math.random() * 256));
+
+  while (bytes.length < byteLen) bytes.push(r());
+  return bytes.slice(0, byteLen);
+}
+
+function generatePfcpRaw(msgName: string, byteLen: number): number[] {
+  const r = () => Math.floor(Math.random() * 256);
+  let msgType: number;
+  if      (msgName.includes('Deletion') && msgName.includes('Resp')) msgType = 0x37;
+  else if (msgName.includes('Deletion'))                              msgType = 0x36;
+  else if (msgName.includes('Mod')      && msgName.includes('Resp')) msgType = 0x35;
+  else if (msgName.includes('Mod'))                                   msgType = 0x34;
+  else if (msgName.includes('Resp') || msgName.includes('Response')) msgType = 0x33;
+  else                                                                msgType = 0x32;
+
+  const msgLen = Math.max(byteLen - 4, 12); // TS 29.244 §7.2.3
+  const seq    = Math.floor(Math.random() * 0xFFFFFF);
+  const bytes: number[] = [
+    0x24,                                          // version=1, S=1 (SEID present)
+    msgType,
+    (msgLen >> 8) & 0xff, msgLen & 0xff,           // Message Length
+    r(), r(), r(), r(), r(), r(), r(), r(),         // SEID (8 bytes)
+    (seq >> 16) & 0xff, (seq >> 8) & 0xff, seq & 0xff, // Sequence Number
+    0x00,                                          // Spare
+  ];
+  while (bytes.length < byteLen) bytes.push(r());
+  return bytes.slice(0, byteLen);
+}
+
+function generateRawHex(byteLen: number, protocol: string, msgName = '', imsi = ''): string {
+  const r = () => Math.floor(Math.random() * 256);
+  let bytes: number[];
+
+  if (protocol === 'NAS') {
+    bytes = generateNasRaw(msgName, imsi, byteLen);
+
+  } else if (protocol === 'NGAP') {
+    // NGAP PDU: initiatingMessage (0x00) + procedure code + criticality
+    bytes = [0x00, 0x04, 0x40];
+    while (bytes.length < byteLen) bytes.push(r());
+
+  } else if (protocol === 'PFCP') {
+    bytes = generatePfcpRaw(msgName, byteLen);
+
+  } else if (protocol === 'HTTP2') {
+    // HTTP/2 HEADERS frame: length(3) + type(1)=0x01 + flags(1)=0x04 + stream_id(4)
+    const streamId = (Math.floor(Math.random() * 127) * 2 + 1);
+    bytes = [
+      0x00, 0x00, 0x00,               // length placeholder
+      0x01,                            // frame type: HEADERS
+      0x04,                            // flags: END_HEADERS
+      0x00, 0x00, (streamId >> 8) & 0x7F, streamId & 0xff,
+    ];
+    while (bytes.length < byteLen) bytes.push(r());
+
+  } else if (protocol === 'XnAP') {
+    bytes = [0x00, 0x24, 0x00];
+    while (bytes.length < byteLen) bytes.push(r());
+
+  } else if (protocol === 'SIP') {
+    bytes = [0x53,0x49,0x50,0x2F,0x32,0x2E,0x30,0x20]; // "SIP/2.0 "
+    while (bytes.length < byteLen) bytes.push(r());
+
+  } else if (protocol === 'RTP') {
+    const seq  = Math.floor(Math.random() * 65535);
+    const ts   = Math.floor(Math.random() * 0xFFFFFFFF);
+    const ssrc = Math.floor(Math.random() * 0xFFFFFFFF);
+    bytes = [
+      0x80, 0x61,                                              // V=2, PT=97 (EVS)
+      (seq  >> 8) & 0xff, seq  & 0xff,                        // Sequence Number
+      (ts   >> 24) & 0xff, (ts >> 16) & 0xff, (ts >> 8) & 0xff, ts & 0xff,
+      (ssrc >> 24) & 0xff, (ssrc >> 16) & 0xff, (ssrc >> 8) & 0xff, ssrc & 0xff,
+    ];
+    while (bytes.length < byteLen) bytes.push(r());
+
+  } else if (protocol === 'RTCP') {
+    const len  = Math.max(Math.floor(byteLen / 4) - 1, 1);
+    const ssrc = Math.floor(Math.random() * 0xFFFFFFFF);
+    bytes = [
+      0x80, 0xC8,                                              // V=2, PT=200 (SR)
+      (len  >> 8) & 0xff, len  & 0xff,
+      (ssrc >> 24) & 0xff, (ssrc >> 16) & 0xff, (ssrc >> 8) & 0xff, ssrc & 0xff,
+    ];
+    while (bytes.length < byteLen) bytes.push(r());
+
+  } else {
+    bytes = [0x00, 0x00];
+    while (bytes.length < byteLen) bytes.push(r());
   }
+
   return bytes.slice(0, byteLen).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
@@ -561,7 +725,7 @@ export function generateSession(): Session {
       protocol:  tmpl.protocol,
       status:    msgStatus,
       byteLen,
-      rawHex:    generateRawHex(byteLen, tmpl.protocol),
+      rawHex:    generateRawHex(byteLen, tmpl.protocol, tmpl.name, imsi),
       decoded:   generateDecoded(tmpl.name, tmpl.protocol, msgStatus, cause5gmm),
     };
   });
