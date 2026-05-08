@@ -121,9 +121,21 @@ export function generateDemoSession(): Session {
 
     case 'B1': {
       const mos = +(4.0 + Math.random() * 0.4).toFixed(1);
+      const callSec = 90 + Math.floor(Math.random() * 120);
+      clone.duration_ms = 2200 + callSec * 1000;
       clone.kpis.mosScore = mos;
       clone.kpis.imsSetupMs = 20 + Math.floor(Math.random() * 8);
       clone.kpis.callSetupMs = 2100 + Math.floor(Math.random() * 200);
+      clone.kpis.callDurationSec = callSec;
+      if (clone.dpi) {
+        clone.dpi.mosScore = mos;
+        const bps = 14000 + Math.floor(Math.random() * 4000);
+        clone.dpi.bytesDl = Math.round(bps / 8 * callSec);
+        clone.dpi.bytesUl = Math.round(bps / 8 * callSec * (0.9 + Math.random() * 0.2));
+        clone.dpi.packetsDl = Math.round(clone.dpi.bytesDl / 172);
+        clone.dpi.packetsUl = Math.round(clone.dpi.bytesUl / 172);
+        clone.dpi.jitterMs  = 1 + Math.floor(Math.random() * 4);
+      }
       return clone;
     }
 
@@ -132,11 +144,17 @@ export function generateDemoSession(): Session {
       const jitter = 14 + Math.floor(Math.random() * 8);
       const loss = +(1.2 + Math.random() * 1.2).toFixed(1);
       const mos = +(2.4 + Math.random() * 0.8).toFixed(1);
-      clone.kpis = { ...clone.kpis, mosScore: mos, packetLoss: loss };
+      const callSec = 30 + Math.floor(Math.random() * 90);
+      clone.duration_ms = 2200 + callSec * 1000;
+      clone.kpis = { ...clone.kpis, mosScore: mos, packetLoss: loss, callDurationSec: callSec };
       if (clone.dpi) {
+        const bps = 14000 + Math.floor(Math.random() * 4000);
         clone.dpi.mosScore  = mos;
         clone.dpi.jitterMs  = jitter;
-        clone.dpi.packetsDl = Math.round(clone.dpi.packetsDl * (1 - loss / 100));
+        clone.dpi.bytesDl   = Math.round(bps / 8 * callSec);
+        clone.dpi.bytesUl   = Math.round(bps / 8 * callSec * (0.9 + Math.random() * 0.2));
+        clone.dpi.packetsDl = Math.round(clone.dpi.bytesDl / 172 * (1 - loss / 100));
+        clone.dpi.packetsUl = Math.round(clone.dpi.bytesUl / 172 * (1 - loss / 100));
         clone.dpi.anomalies = [
           `High jitter: ${jitter}ms (threshold 5ms)`,
           `Packet loss ${loss}% on QFI=2 GBR bearer`,
