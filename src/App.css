@@ -7,9 +7,22 @@
 
 .app-body {
   display: grid;
-  grid-template-columns: 640px 1fr;
+  grid-template-columns: 480px 4px 1fr;
   overflow: hidden;
   min-height: 0;
+}
+
+.app-resize-handle {
+  width: 4px;
+  cursor: col-resize;
+  background: var(--border);
+  transition: background 0.15s;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.app-resize-handle:hover,
+.app-resize-handle:active {
+  background: var(--accent-green);
 }
 
 /* ── Right panel ─────────────────────────────────────────────────────────── */

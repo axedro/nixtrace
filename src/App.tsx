@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import clsx from 'clsx';
 import { useRealtimeSessions } from './hooks/useRealtimeSessions';
 import { useAuth } from './hooks/useAuth';
@@ -35,6 +35,27 @@ function App() {
   const selectedMessage = useNIxStore((s) => s.selectedMessage);
   const showTrigger     = useNIxStore((s) => s.showTriggerModal);
   const theme           = useNIxStore((s) => s.theme);
+
+  const [leftWidth, setLeftWidth] = useState(480);
+  const dragRef = useRef<{ startX: number; startW: number } | null>(null);
+
+  const onResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragRef.current = { startX: e.clientX, startW: leftWidth };
+
+    const onMove = (ev: MouseEvent) => {
+      if (!dragRef.current) return;
+      const next = Math.max(300, Math.min(900, dragRef.current.startW + ev.clientX - dragRef.current.startX));
+      setLeftWidth(next);
+    };
+    const onUp = () => {
+      dragRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [leftWidth]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -76,8 +97,10 @@ function App() {
       />
       <FilterBar />
 
-      <div className="app-body">
+      <div className="app-body" style={{ gridTemplateColumns: `${leftWidth}px 4px 1fr` }}>
         <SessionTable />
+
+        <div className="app-resize-handle" onMouseDown={onResizeStart} />
 
         <div className="app-right">
           <div className="app-tabs">
