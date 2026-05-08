@@ -263,4 +263,18 @@ export const PROCEDURE_DEFS: Record<ProcedureName, Omit<ProcedureDef, 'nfColumns
     primaryIface: 'N1',
     baseDurationMs: 95,
   },
+
+  '5G SA Registration + PDU': {
+    name: '5G SA Registration + PDU',
+    nfFactory: (gnb, amf, amfIp, smf, smfIp, upf, upfIp) => [
+      NF_DEFS.UE(gnb), NF_DEFS.gNB(gnb, '10.10.1.1'), NF_DEFS.AMF(amf, amfIp),
+      NF_DEFS.AUSF(), NF_DEFS.UDM(),
+      { id: 'PCF', label: 'PCF', hostname: 'pcf-01.core.rakuten.local', ip: '10.20.6.1' },
+      NF_DEFS.SMF(smf!, smfIp!), NF_DEFS.UPF(upf!, upfIp!),
+    ],
+    messages: [],
+    slices: ['eMBB'],
+    primaryIface: 'N2',
+    baseDurationMs: 95,
+  },
 };

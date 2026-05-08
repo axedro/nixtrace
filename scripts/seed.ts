@@ -1,7 +1,8 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+config({ path: '.env.local' });  // Vite convention — dotenv/config only reads .env
 import { createClient } from '@supabase/supabase-js';
 // @ts-ignore — running via tsx which resolves this path correctly
-import { generateSession } from '../src/data/sessionGenerator';
+import { generateDemoSession as generateSession } from '../src/data/demoSessionGenerator';
 
 const url = process.env.VITE_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_KEY;
@@ -43,10 +44,11 @@ async function run() {
       console.error(`[${count}] ERR  ${error.message}`);
     } else {
       const pad = (s: string, n: number) => s.padEnd(n);
+      const scenario = session.id.split('-')[1]?.toUpperCase() ?? '??';
       console.log(
         `[${String(count).padStart(4)}] ${pad(session.status.toUpperCase(), 4)} ` +
-        `${pad(session.procedure, 32)} ${pad(session.slice, 6)} ` +
-        `${session.duration_ms}ms`
+        `[${scenario}] ${pad(session.procedure, 36)} ${pad(session.slice, 6)} ` +
+        `${session.duration_ms}ms  IMSI:${session.imsi}`
       );
     }
 

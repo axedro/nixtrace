@@ -1,8 +1,9 @@
-// Supabase Edge Function — generates ~45 synthetic 5G SA sessions per invocation
+// Supabase Edge Function — generates scenario-based Rakuten 5G SA demo sessions
 // Triggered every minute by .github/workflows/seed.yml via HTTP POST
 // Authorization: Bearer <SUPABASE_SERVICE_KEY>
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { generateDemoSession } from "../_shared/demoScenarios.ts";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -737,12 +738,33 @@ Deno.serve(async (req: Request) => {
   let inserted = 0;
 
   while (Date.now() - start < DURATION_MS) {
-    const { error } = await supabase.from('sessions').insert(generateSession());
+    const session = generateDemoSession();
+    // Only insert columns that exist in the DB schema — dpi is offline-only
+    const { error } = await supabase.from('sessions').insert({
+      id:            session.id,
+      timestamp:     session.timestamp,
+      imsi:          session.imsi,
+      msisdn:        session.msisdn,
+      procedure:     session.procedure,
+      primary_iface: session.primary_iface,
+      slice:         session.slice,
+      duration_ms:   session.duration_ms,
+      status:        session.status,
+      gnb:           session.gnb,
+      amf:           session.amf,
+      smf:           session.smf,
+      upf:           session.upf,
+      nfs:           session.nfs,
+      messages:      session.messages,
+      kpis:          session.kpis,
+    });
     if (error) {
       console.error('Insert error:', error.message);
       break;
     }
     inserted++;
+    const scenarioId = session.id.split('-')[1]?.toUpperCase() ?? '??';
+    console.log(`[${inserted}] [${scenarioId}] ${session.status.toUpperCase()} ${session.procedure} ${session.duration_ms}ms IMSI:${session.imsi}`);
     const gap = 800 + Math.floor(Math.random() * 700); // 800–1500ms
     await sleep(gap);
   }

@@ -11,21 +11,33 @@ import './TopBar.css';
 const SCENARIOS: DemoScenario[] = [
   {
     id: 'A',
-    label: 'A · Auth Failure',
-    filter: { status: 'err', procedure: 'Authentication Failure' },
+    label: 'A · 5G SA — All',
+    filter: { procedure: '5G SA Registration + PDU', status: 'all' },
     autoSelectFirst: true,
   },
   {
     id: 'B',
-    label: 'B · uRLLC Handover',
-    filter: { slice: 'uRLLC', procedure: 'Handover (Xn)' },
+    label: 'B · 5G SA — Errors',
+    filter: { procedure: '5G SA Registration + PDU', status: 'err' },
     autoSelectFirst: true,
   },
   {
     id: 'C',
-    label: 'C · PDU Lifecycle',
-    filter: {},
+    label: 'C · VoNR — OK',
+    filter: { procedure: 'VoNR Session Setup', status: 'ok' },
     autoSelectFirst: true,
+  },
+  {
+    id: 'D',
+    label: 'D · VoNR — Issues',
+    filter: { procedure: 'VoNR Session Setup', status: 'warn' },
+    autoSelectFirst: true,
+  },
+  {
+    id: 'E',
+    label: 'E · All Errors',
+    filter: { status: 'err' },
+    autoSelectFirst: false,
   },
 ];
 
@@ -37,8 +49,8 @@ const MODE_LABELS: Record<CaptureMode, string> = {
 };
 
 interface TopBarProps {
-  onScenario?: (id: 'A' | 'B' | 'C') => void;
-  activeScenario?: 'A' | 'B' | 'C' | null;
+  onScenario?: (id: 'A' | 'B' | 'C' | 'D' | 'E') => void;
+  activeScenario?: 'A' | 'B' | 'C' | 'D' | 'E' | null;
 }
 
 export function TopBar({ onScenario, activeScenario }: TopBarProps) {

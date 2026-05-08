@@ -39,6 +39,20 @@ const LIGHT_C = {
 
 type ColorSet = { [K in keyof typeof DARK_C]: string };
 
+// Matches PDF NIx CN Probe Call Flow Reference color key
+const PROTOCOL_COLORS: Record<string, string> = {
+  NAS:    '#4A90D9',
+  NGAP:   '#2ECC71',
+  HTTP2:  '#E5A234',
+  PFCP:   '#00BCD4',
+  'GTP-U':'#8BC34A',
+  SIP:    '#9C27B0',
+  RRC:    '#78909C',
+  XnAP:   '#F06292',
+  RTP:    '#FF7043',
+  RTCP:   '#FF8A65',
+};
+
 const LEFT_MARGIN   = 56;
 const COL_WIDTH     = 150;
 const ROW_HEIGHT    = 46;
@@ -54,10 +68,10 @@ function arrowhead(x: number, y: number, dir: 'right' | 'left'): string {
   return `${x},${y} ${x - s * 8},${y - 4} ${x - s * 8},${y + 4}`;
 }
 
-function colorByStatus(status: string, C: ColorSet) {
+function colorByStatus(status: string, protocol: string, C: ColorSet) {
   if (status === 'err')  return C.err;
   if (status === 'warn') return C.warn;
-  return C.arrow;
+  return PROTOCOL_COLORS[protocol] ?? C.arrow;
 }
 
 // Find NF node index, using role discriminator for Handover gNBs
@@ -181,7 +195,7 @@ export function LadderDiagram() {
             const toX     = colX(toIdx);
             const midX    = (fromX + toX) / 2;
             const dir     = toX >= fromX ? 'right' : 'left';
-            const color   = colorByStatus(msg.status, C);
+            const color   = colorByStatus(msg.status, msg.protocol, C);
             const isSelected = selectedMsg?.id === msg.id;
             const relMs   = relativeMs(messages, idx);
 
@@ -248,15 +262,15 @@ export function LadderDiagram() {
                   {msg.iface} · {msg.byteLen}B
                 </text>
 
-                {/* Protocol badge */}
+                {/* Protocol badge — colored by protocol */}
                 <rect
                   x={midX - 18}
                   y={y + 4}
                   width={36}
                   height={12}
                   rx={2}
-                  fill="rgba(255,255,255,0.04)"
-                  stroke={C.border}
+                  fill={`${PROTOCOL_COLORS[msg.protocol] ?? C.arrow}22`}
+                  stroke={PROTOCOL_COLORS[msg.protocol] ?? C.border}
                   strokeWidth={0.5}
                 />
                 <text
@@ -264,7 +278,7 @@ export function LadderDiagram() {
                   y={y + 13}
                   textAnchor="middle"
                   fontSize={8}
-                  fill={C.textDim}
+                  fill={PROTOCOL_COLORS[msg.protocol] ?? C.textDim}
                   fontFamily="'JetBrains Mono', monospace"
                 >
                   {msg.protocol}

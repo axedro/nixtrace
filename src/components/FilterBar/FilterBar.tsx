@@ -6,6 +6,7 @@ import type { FilterState, SessionStatus, SliceName, InterfaceName, ProcedureNam
 import './FilterBar.css';
 
 const PROCEDURE_OPTIONS: ProcedureName[] = [
+  '5G SA Registration + PDU',
   'Registration', 'PDU Session Establishment', 'PDU Session Modification',
   'PDU Session Release', 'Deregistration', 'Authentication Failure',
   'VoNR Session Setup', 'VoNR Session Release',

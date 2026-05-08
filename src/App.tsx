@@ -29,7 +29,7 @@ function App() {
   const { user, loading } = useAuth();
 
   const [activeTab, setActiveTab]           = useState<TabId>('ladder');
-  const [activeScenario, setActiveScenario] = useState<'A' | 'B' | 'C' | null>(null);
+  const [activeScenario, setActiveScenario] = useState<'A' | 'B' | 'C' | 'D' | 'E' | null>(null);
 
   const selectedSession = useNIxStore((s) => s.selectedSession);
   const selectedMessage = useNIxStore((s) => s.selectedMessage);

@@ -92,6 +92,119 @@ export function SessionKPIs() {
           </div>
         </div>
 
+        {/* Timing breakdown — 5G SA Registration + PDU */}
+        {(kpis.authRttMs !== undefined || kpis.registrationMs !== undefined || kpis.pduSetupMs !== undefined) && (
+          <div>
+            <div className="kpi-section-title">Timing Breakdown</div>
+            <div className="kpi-cards">
+              {kpis.authRttMs !== undefined && (
+                <div className={`kpi-card${kpis.authRttMs > 100 ? ' kpi-card--err' : ''}`}>
+                  <div className="kpi-card-label">Auth RT</div>
+                  <div className="kpi-card-value" style={{ color: kpis.authRttMs > 100 ? 'var(--accent-red)' : kpis.authRttMs > 50 ? 'var(--accent-amber)' : 'var(--accent-green)' }}>
+                    {kpis.authRttMs}<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>ms</span>
+                  </div>
+                  <div className="kpi-card-sub">AMF↔AUSF↔UDM</div>
+                </div>
+              )}
+              {kpis.registrationMs !== undefined && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">Registration</div>
+                  <div className="kpi-card-value">{kpis.registrationMs}<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>ms</span></div>
+                  <div className="kpi-card-sub">RRC→NAS→NGAP</div>
+                </div>
+              )}
+              {kpis.pduSetupMs !== undefined && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">PDU Setup</div>
+                  <div className="kpi-card-value">{kpis.pduSetupMs}<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>ms</span></div>
+                  <div className="kpi-card-sub">SMF→PCF→PFCP→UPF</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Network context */}
+        {(kpis.ueIp !== undefined || kpis.sbiCalls !== undefined || kpis.pfcpExchanges !== undefined) && (
+          <div>
+            <div className="kpi-section-title">Network Context</div>
+            <div className="kpi-cards">
+              {kpis.ueIp && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">UE IP</div>
+                  <div className="kpi-card-value" style={{ fontSize: 14 }}>{kpis.ueIp}</div>
+                  <div className="kpi-card-sub">assigned by UPF</div>
+                </div>
+              )}
+              {kpis.sbiCalls !== undefined && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">SBI Calls</div>
+                  <div className="kpi-card-value">{kpis.sbiCalls}</div>
+                  <div className="kpi-card-sub">HTTP/2 service calls</div>
+                </div>
+              )}
+              {kpis.pfcpExchanges !== undefined && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">PFCP</div>
+                  <div className="kpi-card-value">{kpis.pfcpExchanges}</div>
+                  <div className="kpi-card-sub">exchanges (SMF↔UPF)</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Voice quality — VoNR */}
+        {kpis.mosScore !== undefined && (
+          <div>
+            <div className="kpi-section-title">Voice Quality (VoNR)</div>
+            <div className="kpi-cards">
+              <div className={`kpi-card${kpis.mosScore < 3.5 ? ' kpi-card--err' : ''}`}>
+                <div className="kpi-card-label">MOS</div>
+                <div className="kpi-card-value" style={{ color: kpis.mosScore >= 4.0 ? 'var(--accent-green)' : kpis.mosScore >= 3.5 ? 'var(--accent-amber)' : 'var(--accent-red)' }}>
+                  {kpis.mosScore.toFixed(1)}
+                </div>
+                <div className="kpi-card-sub">Mean Opinion Score</div>
+              </div>
+              {kpis.rFactor !== undefined && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">R-Factor</div>
+                  <div className="kpi-card-value">{kpis.rFactor}</div>
+                  <div className="kpi-card-sub">voice quality score</div>
+                </div>
+              )}
+              {kpis.codec && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">Codec</div>
+                  <div className="kpi-card-value" style={{ fontSize: 13 }}>{kpis.codec}</div>
+                  <div className="kpi-card-sub">voice codec</div>
+                </div>
+              )}
+              {kpis.callDurationSec !== undefined && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">Call Duration</div>
+                  <div className="kpi-card-value">{Math.floor(kpis.callDurationSec / 60)}m{kpis.callDurationSec % 60}s</div>
+                  <div className="kpi-card-sub">active voice</div>
+                </div>
+              )}
+              {kpis.imsSetupMs !== undefined && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">IMS Reg</div>
+                  <div className="kpi-card-value">{kpis.imsSetupMs}<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>ms</span></div>
+                  <div className="kpi-card-sub">REGISTER→200 OK</div>
+                </div>
+              )}
+              {kpis.gbrSetupMs !== undefined && (
+                <div className="kpi-card">
+                  <div className="kpi-card-label">GBR Bearer</div>
+                  <div className="kpi-card-value">{kpis.gbrSetupMs}<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>ms</span></div>
+                  <div className="kpi-card-sub">QFI=2 setup</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Error banner */}
         {status === 'err' && kpis.cause5gmm && (
           <div className="kpi-err-banner">

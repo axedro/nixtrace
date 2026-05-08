@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { supabase, isOfflineMode } from '../lib/supabaseClient';
 import { useNIxStore } from '../store/nixStore';
-import { generateSession } from '../data/sessionGenerator';
+import { generateDemoSession } from '../data/demoSessionGenerator';
 import type { Session } from '../types/session.types';
 
 export function useRealtimeSessions() {
@@ -21,13 +21,13 @@ export function useRealtimeSessions() {
 
       // Pre-seed with 20 historical sessions
       for (let i = 0; i < 20; i++) {
-        addSession(generateSession());
+        addSession(generateDemoSession());
       }
 
       const tick = () => {
         if (stopped) return;
         if (liveModeRef.current) {
-          addSession(generateSession());
+          addSession(generateDemoSession());
         }
         const delay = 800 + Math.random() * 700;
         setTimeout(tick, delay);

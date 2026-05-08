@@ -9,13 +9,17 @@ export type ProcedureName =
   | 'Service Request'
   | 'UE Config Update'
   | 'VoNR Session Setup'
-  | 'VoNR Session Release';
+  | 'VoNR Session Release'
+  | '5G SA Registration + PDU';
 
 export type SessionStatus = 'ok' | 'err' | 'warn';
 export type SliceName = 'eMBB' | 'uRLLC' | 'mMTC';
-export type InterfaceName = 'Uu' | 'N1' | 'N2' | 'N11' | 'N4' | 'Xn' | 'NG';
-export type NfType = 'UE' | 'gNB' | 'AMF' | 'SMF' | 'UPF' | 'PCF' | 'AUSF' | 'UDM';
-export type Protocol = 'NAS' | 'NGAP' | 'PFCP' | 'HTTP2' | 'XnAP' | 'SIP' | 'RTP' | 'RTCP';
+export type InterfaceName = 'Uu' | 'N1' | 'N2' | 'N11' | 'N4' | 'Xn' | 'NG'
+  | 'N3' | 'N7' | 'N8' | 'N10' | 'N12' | 'N13' | 'N15' | 'Gm' | 'ISC';
+export type NfType = 'UE' | 'gNB' | 'AMF' | 'SMF' | 'UPF' | 'PCF' | 'AUSF' | 'UDM'
+  | 'P-CSCF' | 'S-CSCF' | 'UE-B';
+export type Protocol = 'NAS' | 'NGAP' | 'PFCP' | 'HTTP2' | 'XnAP' | 'SIP' | 'RTP' | 'RTCP'
+  | 'GTP-U' | 'RRC';
 
 export type CaptureMode = 'online' | 'historical' | 'combined' | 'scheduled';
 
@@ -94,6 +98,21 @@ export interface SessionKpiData {
   packetLoss?:      number;
   handoverLat?:     number;
   cause5gmm?:       string;
+  // 5G SA Registration + PDU KPIs
+  authRttMs?:       number;
+  registrationMs?:  number;
+  pduSetupMs?:      number;
+  sbiCalls?:        number;
+  pfcpExchanges?:   number;
+  ueIp?:            string;
+  // VoNR KPIs
+  mosScore?:        number;
+  rFactor?:         number;
+  codec?:           string;
+  callSetupMs?:     number;
+  callDurationSec?: number;
+  imsSetupMs?:      number;
+  gbrSetupMs?:      number;
 }
 
 export interface Session {
@@ -161,7 +180,7 @@ export interface NIxTraceStore {
 }
 
 export interface DemoScenario {
-  id:              'A' | 'B' | 'C';
+  id:              'A' | 'B' | 'C' | 'D' | 'E';
   label:           string;
   filter:          Partial<FilterState>;
   autoSelectFirst: boolean;
