@@ -27,7 +27,7 @@ export function MessageDecode() {
         <span className="md-title">Decode</span>
         {msg && (
           <span className="md-msg-tag">
-            [{msg.seq}] {msg.name} · {msg.protocol} · {msg.byteLen}B
+            [{msg.seq}] {msg.name || msg.decoded?.[0]?.key || `Msg ${msg.seq}`} · {msg.protocol} · {msg.byteLen}B
           </span>
         )}
       </div>
@@ -46,7 +46,7 @@ export function MessageDecode() {
               onClick={() => selectMessage(m.id === selectedMsg?.id ? null : m)}
             >
               <span className="md-seq">{m.seq}</span>
-              <span className="md-msgname">{m.name}</span>
+              <span className="md-msgname">{m.name || m.decoded?.[0]?.key || `Msg ${m.seq}`}</span>
               <span className="md-proto-badge">{m.protocol}</span>
               <span className="md-byte-count">{m.byteLen}B</span>
             </div>
