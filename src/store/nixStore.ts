@@ -46,6 +46,7 @@ export const useNIxStore = create<NIxTraceStore>((set) => ({
   triggerActive:    false,
   bufferSize:       500,
   showTriggerModal: false,
+  activeTab: 'ladder' as const,
   theme: (() => {
     const t = (localStorage.getItem('nixtrace-theme') as 'dark' | 'light') ?? 'light';
     document.documentElement.dataset.theme = t;
@@ -75,6 +76,7 @@ export const useNIxStore = create<NIxTraceStore>((set) => ({
   setTriggerActive:(v) => set({ triggerActive: v }),
   setBufferSize:  (n) => set({ bufferSize: n }),
   setShowTriggerModal: (v) => set({ showTriggerModal: v }),
+  setActiveTab: (t) => set({ activeTab: t }),
   setTheme: (t) => { localStorage.setItem('nixtrace-theme', t); set({ theme: t }); },
 }));
 

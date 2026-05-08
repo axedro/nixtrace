@@ -15,9 +15,7 @@ import { TriggerModal } from './components/TriggerModal/TriggerModal';
 import { LoginPage } from './components/LoginPage/LoginPage';
 import './App.css';
 
-type TabId = 'ladder' | 'decode' | 'kpis' | 'dpi';
-
-const TABS: { id: TabId; label: string }[] = [
+const TABS: { id: 'ladder' | 'decode' | 'kpis' | 'dpi'; label: string }[] = [
   { id: 'ladder', label: 'Ladder' },
   { id: 'decode', label: 'Decode' },
   { id: 'kpis',   label: 'KPIs' },
@@ -28,13 +26,14 @@ function App() {
   useRealtimeSessions();
   const { user, loading } = useAuth();
 
-  const [activeTab, setActiveTab]           = useState<TabId>('ladder');
   const [activeScenario, setActiveScenario] = useState<'A' | 'B' | 'C' | 'D' | 'E' | null>(null);
 
   const selectedSession = useNIxStore((s) => s.selectedSession);
   const selectedMessage = useNIxStore((s) => s.selectedMessage);
   const showTrigger     = useNIxStore((s) => s.showTriggerModal);
   const theme           = useNIxStore((s) => s.theme);
+  const activeTab       = useNIxStore((s) => s.activeTab);
+  const setActiveTab    = useNIxStore((s) => s.setActiveTab);
 
   const [leftWidth, setLeftWidth] = useState(480);
   const dragRef = useRef<{ startX: number; startW: number } | null>(null);

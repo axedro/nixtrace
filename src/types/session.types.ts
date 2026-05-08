@@ -164,6 +164,8 @@ export interface NIxTraceStore {
   bufferSize:      number;
   showTriggerModal:boolean;
   theme:           'dark' | 'light';
+  activeTab:       'ladder' | 'decode' | 'kpis' | 'dpi';
+  setActiveTab:    (t: 'ladder' | 'decode' | 'kpis' | 'dpi') => void;
   addSession:      (s: Session) => void;
   selectSession:   (s: Session | null) => void;
   selectMessage:   (m: LadderMessage | null) => void;

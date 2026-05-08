@@ -1,5 +1,57 @@
 import { useNIxStore } from '../../store/nixStore';
+import type { LadderMessage } from '../../types/session.types';
 import './SessionKPIs.css';
+
+// ── Message Timeline component ───────────────────────────────────────────────
+
+function relMsFrom(messages: { timestamp: string }[], idx: number): number {
+  if (idx === 0) return 0;
+  try {
+    const t0 = new Date(messages[0].timestamp).getTime();
+    return Math.max(0, new Date(messages[idx].timestamp).getTime() - t0);
+  } catch { return 0; }
+}
+
+function MessageTimeline({ messages, totalMs }: { messages: LadderMessage[]; totalMs: number }) {
+  const selectMessage = useNIxStore((s) => s.selectMessage);
+  const setActiveTab  = useNIxStore((s) => s.setActiveTab);
+
+  if (!messages.length) return null;
+
+  const effectiveMs = Math.max(totalMs, relMsFrom(messages, messages.length - 1) + 1);
+
+  return (
+    <div>
+      <div className="kpi-section-title">Message Timeline</div>
+      <div className="kpi-tl-canvas">
+        <div className="kpi-tl-baseline" />
+        {messages.map((m, i) => {
+          const pct   = (relMsFrom(messages, i) / effectiveMs) * 100;
+          const above = i % 2 === 0;
+          return (
+            <div
+              key={m.id}
+              className={`kpi-tl-marker kpi-tl-marker--${m.status}`}
+              style={{ left: `${pct}%` }}
+              title={`[${m.seq}] ${m.name || m.decoded?.[0]?.key || `Msg ${m.seq}`} · ${m.protocol} · +${relMsFrom(messages, i)}ms`}
+              onClick={() => { selectMessage(m); setActiveTab('decode'); }}
+            >
+              <span className={`kpi-tl-num ${above ? 'kpi-tl-num--above' : 'kpi-tl-num--below'}`}>
+                {m.seq}
+              </span>
+              <div className="kpi-tl-tick" />
+            </div>
+          );
+        })}
+      </div>
+      <div className="kpi-timeline-axis">
+        <span>0ms</span>
+        <span>{Math.round(effectiveMs / 2)}ms</span>
+        <span>{effectiveMs}ms</span>
+      </div>
+    </div>
+  );
+}
 
 function SubscriberLink({ imsi, sessions }: { imsi: string; sessions: { imsi: string }[] }) {
   const setFilter = useNIxStore((s) => s.setFilter);
@@ -241,26 +293,8 @@ export function SessionKPIs() {
           </table>
         </div>
 
-        {/* Timeline bar */}
-        <div>
-          <div className="kpi-section-title">Message Timeline</div>
-          <div className="kpi-timeline">
-            {messages.map((m, i) => {
-              const segMs  = i < messages.length - 1
-                ? relMs(messages, i + 1) - relMs(messages, i)
-                : 1;
-              const pct    = totalMs > 0 ? (segMs / totalMs) * 100 : 100 / messages.length;
-              return (
-                <div
-                  key={m.id}
-                  className={`kpi-timeline-seg kpi-timeline-seg--${m.status}`}
-                  style={{ width: `${Math.max(pct, 0.5)}%` }}
-                  title={`[${m.seq}] ${m.name} +${relMs(messages, i)}ms`}
-                />
-              );
-            })}
-          </div>
-        </div>
+        {/* Timeline canvas */}
+        <MessageTimeline messages={messages} totalMs={totalMs} />
 
       </div>
     </div>
