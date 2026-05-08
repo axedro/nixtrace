@@ -69,7 +69,9 @@
 }
 .md-msgname {
   font-size: 12px;
+  color: var(--text-primary);
   flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

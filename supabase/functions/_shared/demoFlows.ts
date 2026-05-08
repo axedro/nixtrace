@@ -203,8 +203,12 @@ const MSGS_VONR: Omit<LadderMessage, 'id'>[] = [
 
 // ─── Attach IDs ─────────────────────────────────────────────────────────────
 
-function attachIds(msgs: Omit<LadderMessage, 'id'>[], prefix: string): LadderMessage[] {
-  return msgs.map((m, i) => ({ ...m, id: `${prefix}-msg-${String(i + 1).padStart(3, '0')}` }));
+function attachIds(msgs: (Omit<LadderMessage, 'id' | 'name'> & { name?: string })[], prefix: string): LadderMessage[] {
+  return msgs.map((m, i) => ({
+    ...m,
+    id:   `${prefix}-msg-${String(i + 1).padStart(3, '0')}`,
+    name: m.name ?? m.decoded?.[0]?.key ?? `Msg ${m.seq}`,
+  } as LadderMessage));
 }
 
 // ─── Exported base sessions ──────────────────────────────────────────────────
