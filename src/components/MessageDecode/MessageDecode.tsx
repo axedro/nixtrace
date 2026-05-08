@@ -82,9 +82,11 @@ function http2Hex(decoded: DecodedField[] | undefined, byteLen: number): string 
 }
 
 function deriveHex(msg: LadderMessage): string {
-  if (msg.rawHex) return msg.rawHex.replace(/\s+/g, '');
+  const raw = msg.rawHex ? msg.rawHex.replace(/\s+/g, '') : '';
   if (msg.protocol === 'SIP')   return sipHex(msg.decoded, msg.byteLen);
   if (msg.protocol === 'HTTP2') return http2Hex(msg.decoded, msg.byteLen);
+  // For binary protocols: use real header bytes then pad to byteLen
+  if (raw) return padHex(raw, msg.byteLen);
   return '';
 }
 
