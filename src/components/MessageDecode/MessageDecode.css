@@ -114,6 +114,8 @@
   user-select: none;
 }
 .dt-section:hover { color: var(--accent-green); }
+.dt-section--err { color: var(--accent-red) !important; }
+.dt-section--err:hover { color: var(--accent-red) !important; opacity: 0.85; }
 .dt-chevron { color: var(--text-dim); font-size: 10px; }
 .dt-leaf { display: flex; gap: 6px; }
 .dt-key   { color: var(--accent-blue); }

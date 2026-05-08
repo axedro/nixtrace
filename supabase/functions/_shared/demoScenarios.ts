@@ -89,6 +89,40 @@ export function generateDemoSession(): Session {
         ...clone.messages[11],
         status: 'err',
         name: 'Authentication Response (FAILED — MAC mismatch)',
+        decoded: [
+          {
+            key: 'NAS-5GS Authentication Failure', value: '', type: 'section',
+            children: [
+              { key: 'epd', value: '0x7E', type: 'hex' },
+              { key: 'security-header-type', value: 'Plain NAS', type: 'enum' },
+              { key: 'message-type', value: '0x5C (Authentication Failure)', type: 'hex', error: true },
+              {
+                key: '5GMM Cause', value: '', type: 'section', error: true,
+                children: [
+                  { key: 'cause-value', value: '21 (0x15)', type: 'hex', error: true },
+                  { key: 'reason', value: 'MAC failure — AUTN token rejected by UE USIM', type: 'string', error: true },
+                ],
+              },
+              {
+                key: 'Authentication Failure Parameter (AUTS)', value: '', type: 'section',
+                children: [
+                  { key: 'auts', value: '0xFA4B9C3D2E1F0A5B6C7D8E9F', type: 'hex' },
+                  { key: 'sqn_xor_ak', value: '0xFA4B9C3D2E1F', type: 'hex' },
+                  { key: 'mac-s', value: '0x0A5B6C7D8E9F', type: 'hex' },
+                ],
+              },
+            ],
+          },
+          {
+            key: '⚡ Failure Analysis', value: '', type: 'section', error: true,
+            children: [
+              { key: 'failure_point', value: 'UE USIM rejected AMF authentication challenge', type: 'string', error: true },
+              { key: '5gmm_cause', value: '21 — MAC failure (AUTN mismatch)', type: 'string', error: true },
+              { key: 'impact', value: 'Registration blocked — authentication sequence terminated at seq 12', type: 'string' },
+              { key: 'next_step', value: 'AMF sends Authentication Reject (5GMM cause #21); UE remains unregistered', type: 'string' },
+            ],
+          },
+        ],
       };
       clone.kpis = { setupTimeMs: 42, cause5gmm: '21 — MAC failure (AUTN mismatch)', authRttMs: 29 };
       return clone;
@@ -102,6 +136,54 @@ export function generateDemoSession(): Session {
         ...clone.messages[27],
         status: 'err',
         name: 'PFCP Session Establishment Response (REJECTED — cause 64)',
+        decoded: [
+          {
+            key: 'PFCP Session Establishment Response', value: '', type: 'section',
+            children: [
+              {
+                key: 'PFCP header', value: '', type: 'section',
+                children: [
+                  { key: 'version', value: '1', type: 'enum' },
+                  { key: 'S', value: true, type: 'bool' },
+                  { key: 'message-type', value: '0x33', type: 'hex' },
+                  { key: 'length', value: 298, type: 'number' },
+                  { key: 'seid', value: 1, type: 'number' },
+                  { key: 'sequence-number', value: 1, type: 'number' },
+                ],
+              },
+              {
+                key: 'Cause (IE)', value: '', type: 'section', error: true,
+                children: [
+                  { key: 'value', value: 'Request Rejected (64)', type: 'enum', error: true },
+                  { key: 'description', value: 'UPF rejected PDR/FAR rule — resource unavailable in data plane', type: 'string', error: true },
+                ],
+              },
+              {
+                key: 'Offending IE (IE)', value: '', type: 'section', error: true,
+                children: [
+                  { key: 'type', value: 'Create PDR (IE type 1)', type: 'enum', error: true },
+                  { key: 'description', value: 'PDR rule could not be instantiated in data plane', type: 'string' },
+                ],
+              },
+              {
+                key: 'Node ID (IE)', value: '', type: 'section',
+                children: [
+                  { key: 'node-id-type', value: 'FQDN', type: 'enum' },
+                  { key: 'fqdn', value: 'upf-01.core.rakuten.local', type: 'string' },
+                ],
+              },
+            ],
+          },
+          {
+            key: '⚡ Failure Analysis', value: '', type: 'section', error: true,
+            children: [
+              { key: 'failure_point', value: 'UPF rejected PDU session at PFCP level', type: 'string', error: true },
+              { key: 'pfcp_cause', value: '64 — Request Rejected', type: 'string', error: true },
+              { key: 'impact', value: 'No GTP-U tunnel created — UE receives no data plane connectivity', type: 'string' },
+              { key: 'next_step', value: 'SMF returns N11 error to AMF; UE receives PDU Session Establishment Reject', type: 'string' },
+            ],
+          },
+        ],
       };
       clone.kpis = { setupTimeMs: 71, pduSetupMs: 6, authRttMs: 22, registrationMs: 61, sbiCalls: 12, pfcpExchanges: 1 };
       return clone;

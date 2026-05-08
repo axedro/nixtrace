@@ -14,7 +14,10 @@ function DecodeNode({ field, depth }: NodeProps) {
   if (field.type === 'section') {
     return (
       <div className="dt-node" style={{ paddingLeft: indent + 8 }}>
-        <div className="dt-section" onClick={() => setOpen((o) => !o)}>
+        <div
+          className={clsx('dt-section', { 'dt-section--err': field.error })}
+          onClick={() => setOpen((o) => !o)}
+        >
           <span className="dt-chevron">{open ? '▾' : '▸'}</span>
           <span>{field.key}</span>
           {!open && field.children && (
