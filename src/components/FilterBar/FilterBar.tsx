@@ -2,15 +2,12 @@ import { useRef, useCallback } from 'react';
 import clsx from 'clsx';
 import { useNIxStore } from '../../store/nixStore';
 import { DEFAULT_FILTER } from '../../store/nixStore';
-import type { FilterState, SessionStatus, SliceName, InterfaceName, ProcedureName } from '../../types/session.types';
+import type { FilterState, SessionStatus, InterfaceName, ProcedureName } from '../../types/session.types';
 import './FilterBar.css';
 
 const PROCEDURE_OPTIONS: ProcedureName[] = [
   '5G SA Registration + PDU',
-  'Registration', 'PDU Session Establishment', 'PDU Session Modification',
-  'PDU Session Release', 'Deregistration', 'Authentication Failure',
-  'VoNR Session Setup', 'VoNR Session Release',
-  'Handover (Xn)', 'Service Request', 'UE Config Update',
+  'VoNR Session Setup',
 ];
 
 function isActive(val: string) { return val !== 'all' && val !== ''; }
@@ -31,7 +28,7 @@ export function FilterBar() {
   }
 
   const anyActive =
-    filter.status !== 'all' || filter.slice !== 'all' ||
+    filter.status !== 'all' ||
     filter.procedure !== 'all' || filter.iface !== 'all' || filter.imsi !== '';
 
   return (
@@ -56,7 +53,7 @@ export function FilterBar() {
         onChange={(e) => set('iface', e.target.value as InterfaceName | 'all')}
       >
         <option value="all">Iface: all</option>
-        {(['Uu','N1','N2','N11','N4','Xn','NG'] as InterfaceName[]).map((v) => (
+        {(['Uu','N1','N2','N3','N4','N7','N8','N10','N11','N12','N13','N15','Gm','ISC'] as InterfaceName[]).map((v) => (
           <option key={v} value={v}>{v}</option>
         ))}
       </select>
@@ -71,18 +68,6 @@ export function FilterBar() {
         <option value="ok">OK</option>
         <option value="warn">WARN</option>
         <option value="err">ERR</option>
-      </select>
-
-      {/* Slice */}
-      <select
-        className={clsx('fb-select', { 'fb-select--active': isActive(filter.slice) })}
-        value={filter.slice}
-        onChange={(e) => set('slice', e.target.value as SliceName | 'all')}
-      >
-        <option value="all">Slice: all</option>
-        {(['eMBB','uRLLC','mMTC'] as SliceName[]).map((v) => (
-          <option key={v} value={v}>{v}</option>
-        ))}
       </select>
 
       {/* Procedure */}

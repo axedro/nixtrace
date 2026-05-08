@@ -11,7 +11,7 @@
 /* ── Header ──────────────────────────────────────────────────────────────── */
 .st-header {
   display: grid;
-  grid-template-columns: 84px 120px 1fr 48px 76px 56px 28px;
+  grid-template-columns: 84px 120px 1fr 48px 56px 28px;
   align-items: center;
   height: 26px;
   padding: 0 4px;
@@ -44,7 +44,7 @@
   position: absolute;
   left: 0; right: 0;
   display: grid;
-  grid-template-columns: 84px 120px 1fr 48px 76px 56px 28px;
+  grid-template-columns: 84px 120px 1fr 48px 56px 28px;
   align-items: center;
   height: 28px;
   padding: 0 4px;

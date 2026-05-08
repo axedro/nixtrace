@@ -70,7 +70,6 @@ export function SessionTable() {
         <span className="st-header-cell">IMSI</span>
         <span className="st-header-cell">Procedure</span>
         <span className="st-header-cell">Iface</span>
-        <span className="st-header-cell">Slice</span>
         <span className="st-header-cell right">Duration</span>
         <span className="st-header-cell center">St</span>
       </div>
@@ -114,9 +113,6 @@ export function SessionTable() {
                   <span className="st-cell" title={s.procedure}>{s.procedure}</span>
                   <span className="st-cell mono" style={{ color: 'var(--text-secondary)' }}>
                     {s.primary_iface}
-                  </span>
-                  <span className="st-cell">
-                    <span className={`st-slice st-slice--${s.slice}`}>{s.slice}</span>
                   </span>
                   <span className="st-cell mono right" style={{ color: 'var(--text-secondary)' }}>
                     {s.duration_ms}ms
