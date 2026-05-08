@@ -266,4 +266,20 @@ export const DEMO_FLOW_VONR: Session = {
     sbiCalls:        4,
     pfcpExchanges:   3,
   },
+  dpi: {
+    appId:       'VoNR',
+    appCategory: 'Voice',
+    dpi_flows:   [
+      { qfi: 1, fiveQI: 9, type: 'Non-GBR', pdb: 300 },
+      { qfi: 2, fiveQI: 1, type: 'GBR', gbrDl: 64, gbrUl: 64, pdb: 100 },
+    ],
+    bytesUl:   1843200,
+    bytesDl:   1843200,
+    packetsUl: 10720,
+    packetsDl: 10720,
+    jitterMs:  2,
+    latencyMs: 28,
+    mosScore:  4.2,
+    anomalies: [],
+  },
 };

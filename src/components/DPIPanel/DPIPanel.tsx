@@ -116,8 +116,8 @@ export function DPIPanel() {
           ) : (
             <div className="dpi-card">
               <div className="dpi-card-label">QoS Flows</div>
-              <div className="dpi-card-value">{dpi.dpi_flows.length}</div>
-              <div className="dpi-card-sub">{dpi.dpi_flows.filter(f => f.type === 'GBR').length} GBR</div>
+              <div className="dpi-card-value">{(dpi.dpi_flows ?? []).length}</div>
+              <div className="dpi-card-sub">{(dpi.dpi_flows ?? []).filter(f => f.type === 'GBR').length} GBR</div>
             </div>
           )}
         </div>
@@ -153,17 +153,17 @@ export function DPIPanel() {
               </tr>
             </thead>
             <tbody>
-              {dpi.dpi_flows.map((f) => <QosRow key={f.qfi} flow={f} />)}
+              {(dpi.dpi_flows ?? []).map((f) => <QosRow key={f.qfi} flow={f} />)}
             </tbody>
           </table>
         </div>
 
         {/* Anomalies */}
-        {dpi.anomalies.length > 0 && (
+        {(dpi.anomalies ?? []).length > 0 && (
           <div>
             <div className="dpi-section-title">Anomaly Detection</div>
             <div className="dpi-anomalies">
-              {dpi.anomalies.map((a, i) => (
+              {(dpi.anomalies ?? []).map((a, i) => (
                 <div key={i} className="dpi-anomaly">
                   <span>⚠</span> {a}
                 </div>

@@ -46,7 +46,7 @@ interface DecodeTreeProps {
 }
 
 export function DecodeTree({ fields }: DecodeTreeProps) {
-  if (!fields.length) {
+  if (!fields || !fields.length) {
     return <div className="dt-empty">No decoded fields available</div>;
   }
   return (
