@@ -76,14 +76,6 @@ function ifacePath(messages: { iface: string }[]): string {
   return path.join(' → ');
 }
 
-function relMs(messages: { timestamp: string }[], idx: number): number {
-  if (idx === 0) return 0;
-  try {
-    const t0 = new Date(messages[0].timestamp).getTime();
-    const ti = new Date(messages[idx].timestamp).getTime();
-    return Math.max(0, ti - t0);
-  } catch { return 0; }
-}
 
 export function SessionKPIs() {
   const session  = useNIxStore((s) => s.selectedSession);
