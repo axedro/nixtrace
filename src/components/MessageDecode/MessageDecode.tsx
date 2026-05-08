@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import { useNIxStore } from '../../store/nixStore';
 import { DecodeTree } from './DecodeTree';
@@ -96,6 +97,11 @@ export function MessageDecode() {
   const session       = useNIxStore((s) => s.selectedSession);
   const selectedMsg   = useNIxStore((s) => s.selectedMessage);
   const selectMessage = useNIxStore((s) => s.selectMessage);
+  const selectedRowRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    selectedRowRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selectedMsg?.id]);
 
   if (!session) {
     return (
@@ -126,6 +132,7 @@ export function MessageDecode() {
           {session.messages.map((m) => (
             <div
               key={m.id}
+              ref={m.id === msg?.id ? selectedRowRef : null}
               className={clsx('md-msg-row', {
                 'md-msg-row--selected': m.id === msg?.id,
                 'md-msg-row--err':      m.status === 'err',
