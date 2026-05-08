@@ -207,7 +207,24 @@ export function generateDemoSession(): Session {
       clone.messages = clone.messages.map((m) =>
         authSeqs.has(m.seq) ? { ...m, timestamp: shiftIso(m.timestamp, 300) } : m,
       );
-      clone.messages[6] = { ...clone.messages[6], status: 'warn' };
+      clone.messages[6] = {
+        ...clone.messages[6],
+        status: 'warn',
+        decoded: [
+          ...(clone.messages[6].decoded ?? []),
+          {
+            key: '⚠ Slow Authentication Warning', value: '', type: 'section', error: true,
+            children: [
+              { key: 'auth_rtt_ms', value: 340, type: 'number', error: true },
+              { key: 'baseline_ms', value: 22, type: 'number' },
+              { key: 'threshold_ms', value: 100, type: 'number' },
+              { key: 'root_cause', value: 'AMF→AUSF→UDM round-trip exceeded threshold by 318ms', type: 'string', error: true },
+              { key: 'impact', value: 'Registration delayed by 300ms — total setup 380ms vs 95ms baseline', type: 'string', error: true },
+              { key: 'suspect', value: 'AUSF or UDM overload / network congestion on N12/N13 interface', type: 'string' },
+            ],
+          } as import('../types/session.types').DecodedField,
+        ],
+      };
       clone.duration_ms = 380;
       clone.kpis = {
         ...clone.kpis,
@@ -264,7 +281,28 @@ export function generateDemoSession(): Session {
         ];
       }
       clone.messages = clone.messages.map((m) =>
-        m.protocol === 'RTP' ? { ...m, status: 'warn' } : m,
+        m.protocol === 'RTP' ? {
+          ...m,
+          status: 'warn' as const,
+          decoded: [
+            ...(m.decoded ?? []),
+            {
+              key: '⚠ Quality Degradation', value: '', type: 'section', error: true,
+              children: [
+                { key: 'jitter_ms', value: jitter, type: 'number', error: true },
+                { key: 'jitter_threshold_ms', value: 5, type: 'number' },
+                { key: 'packet_loss_pct', value: loss, type: 'number', error: true },
+                { key: 'mos_score', value: mos, type: 'number', error: true },
+                { key: 'mos_threshold', value: 3.5, type: 'number' },
+                { key: 'r_factor', value: Math.round(93.2 - 11 * Math.log(1 + jitter / 5)), type: 'number', error: true },
+                { key: 'codec', value: 'AMR-WB/16000 (12.65 kbps)', type: 'string' },
+                { key: 'root_cause', value: 'High jitter → RTP playout buffer overflow → late/lost frames', type: 'string', error: true },
+                { key: 'impact', value: `MOS ${mos} below threshold 3.5 — voice degraded but intelligible`, type: 'string', error: true },
+                { key: 'bearer', value: 'QFI=2 GBR QoS flow (5QI=1)', type: 'string' },
+              ],
+            } as import('../types/session.types').DecodedField,
+          ],
+        } : m,
       );
       return clone;
     }
