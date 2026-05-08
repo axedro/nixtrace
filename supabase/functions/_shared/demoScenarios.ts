@@ -133,6 +133,16 @@ export function generateDemoSession(): Session {
       const loss = +(1.2 + Math.random() * 1.2).toFixed(1);
       const mos = +(2.4 + Math.random() * 0.8).toFixed(1);
       clone.kpis = { ...clone.kpis, mosScore: mos, packetLoss: loss };
+      if (clone.dpi) {
+        clone.dpi.mosScore  = mos;
+        clone.dpi.jitterMs  = jitter;
+        clone.dpi.packetsDl = Math.round(clone.dpi.packetsDl * (1 - loss / 100));
+        clone.dpi.anomalies = [
+          `High jitter: ${jitter}ms (threshold 5ms)`,
+          `Packet loss ${loss}% on QFI=2 GBR bearer`,
+          `MOS below threshold: ${mos} (min 3.5)`,
+        ];
+      }
       clone.messages = clone.messages.map((m) =>
         m.protocol === 'RTP' ? { ...m, status: 'warn' as const } : m,
       );

@@ -1340,6 +1340,19 @@ export const DEMO_FLOW_5GSA: Session = {
     pfcpExchanges:  2,
     ueIp:           '10.45.0.23',
   },
+  dpi: {
+    appId:       'internet.rakuten',
+    appCategory: 'Web/Data',
+    dpi_flows:   [
+      { qfi: 6, fiveQI: 9, type: 'Non-GBR' as const, pdb: 300 },
+    ],
+    bytesUl:   524288,
+    bytesDl:   2097152,
+    packetsUl: 374,
+    packetsDl: 1497,
+    latencyMs: 8,
+    anomalies: [],
+  },
 };
 
 export const DEMO_FLOW_VONR: Session = {

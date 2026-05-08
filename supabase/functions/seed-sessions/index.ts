@@ -739,7 +739,6 @@ Deno.serve(async (req: Request) => {
 
   while (Date.now() - start < DURATION_MS) {
     const session = generateDemoSession();
-    // Only insert columns that exist in the DB schema — dpi is offline-only
     const { error } = await supabase.from('sessions').insert({
       id:            session.id,
       timestamp:     session.timestamp,
@@ -757,6 +756,7 @@ Deno.serve(async (req: Request) => {
       nfs:           session.nfs,
       messages:      session.messages,
       kpis:          session.kpis,
+      dpi:           session.dpi ?? null,
     });
     if (error) {
       console.error('Insert error:', error.message);

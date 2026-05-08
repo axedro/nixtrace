@@ -58,6 +58,29 @@ interface SessionKpiData {
   gbrSetupMs?:      number;
 }
 
+interface QosFlow {
+  qfi:    number;
+  fiveQI: number;
+  type:   'GBR' | 'Non-GBR';
+  gbrDl?: number;
+  gbrUl?: number;
+  pdb:    number;
+}
+
+interface DpiData {
+  appId:       string;
+  appCategory: string;
+  dpi_flows:   QosFlow[];
+  bytesUl:     number;
+  bytesDl:     number;
+  packetsUl:   number;
+  packetsDl:   number;
+  jitterMs?:   number;
+  latencyMs?:  number;
+  mosScore?:   number;
+  anomalies:   string[];
+}
+
 export interface Session {
   id:            string;
   created_at:    string;
@@ -76,6 +99,7 @@ export interface Session {
   nfs:           NfNode[];
   messages:      LadderMessage[];
   kpis:          SessionKpiData;
+  dpi?:          DpiData;
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -238,6 +262,19 @@ export const DEMO_FLOW_5GSA: Session = {
     sbiCalls:       14,
     pfcpExchanges:  2,
     ueIp:           '10.45.0.23',
+  },
+  dpi: {
+    appId:       'internet.rakuten',
+    appCategory: 'Web/Data',
+    dpi_flows:   [
+      { qfi: 6, fiveQI: 9, type: 'Non-GBR' as const, pdb: 300 },
+    ],
+    bytesUl:   524288,
+    bytesDl:   2097152,
+    packetsUl: 374,
+    packetsDl: 1497,
+    latencyMs: 8,
+    anomalies: [],
   },
 };
 

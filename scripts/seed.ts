@@ -37,6 +37,7 @@ async function run() {
       nfs:           session.nfs,
       messages:      session.messages,
       kpis:          session.kpis,
+      dpi:           session.dpi ?? null,
     });
 
     count++;
